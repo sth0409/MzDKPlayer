@@ -11,16 +11,10 @@ import androidx.media3.datasource.DataSourceException
 import androidx.media3.datasource.DataSpec
 import com.thegrizzlylabs.sardineandroid.impl.OkHttpSardine
 import okhttp3.Credentials
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.IOException
 import java.io.InputStream
-import java.security.SecureRandom
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
-import javax.net.ssl.SSLContext
-import javax.net.ssl.TrustManager
-import javax.net.ssl.X509TrustManager
 import kotlin.math.min
 
 /**
@@ -235,46 +229,55 @@ class WebDavDataSource : BaseDataSource(/* isNetwork= */ true) {
 //        }
 //    }
     @Throws(IOException::class)
-    private fun getFileLength(username: String, password: String): Long {
+    private fun getFileLength(myUsername: String, myPassword: String): Long {
         try {
             val cleanUri = buildCleanUri(dataSpec?.uri!!)
 
-            // 1. 准备鉴权信息 (Sardine 里的账号密码要拿过来用)
+            // 鉴权 (照旧)
+            val credential = Credentials.basic(myUsername, myPassword)
 
-            val credential = Credentials.basic(username, password)
-
-            // 2. 构建 HEAD 请求
+            // ⚠️ 关键修改：
+            // 1. 使用 GET 方法 (不是 HEAD)
+            // 2. 添加 Range 头，只请求前 2 个字节 (bytes=0-1)
             val request = Request.Builder()
                 .url(cleanUri)
-                .header("Authorization", credential) // 添加鉴权头
-                .head() // 关键：只请求头信息，不下载 body
+                .header("Authorization", credential)
+                .header("Range", "bytes=0-1")
+                .get()
                 .build()
 
-            // 3. 执行请求
-            // 注意：这里用 execute() 是同步阻塞的，这符合你原本函数的写法
-            // use 扩展方法会自动关闭 response，防止内存泄漏
             webDavClient.newCall(request).execute().use { response ->
-                if (!response.isSuccessful) {
-                    // 如果是 404 就是文件不存在，401 是密码错，400 是请求错...
-                    if (response.code == 404) {
-                        throw IOException("文件不存在 (404)")
+                // 场景 A: 服务器支持 Range (最常见) -> 返回 206
+                if (response.code == 206) {
+                    val contentRange = response.header("Content-Range")
+                    // 格式通常是: "bytes 0-1/12345678"
+                    // 我们需要提取斜杠 "/" 后面的数字
+                    if (contentRange != null) {
+                        val totalLength = contentRange.substringAfterLast("/").toLongOrNull()
+                        if (totalLength != null && totalLength > 0) {
+                            return totalLength
+                        }
                     }
-                    throw IOException("请求失败: ${response.code} ${response.message}")
                 }
 
-                // 4. 获取长度
-                val lengthStr = response.header("Content-Length")
-                // 有些服务器可能不返 Content-Length，或者返回 chunked 传输，需要兜底
-                val length = lengthStr?.toLongOrNull() ?: -1L
+                // 场景 B: 服务器忽略 Range，直接返回整个文件 -> 返回 200
+                // 注意：如果 Content-Type 还是 text/html，说明链接有问题
+                if (response.code == 200) {
+                    // 检查是否错误的返回了 HTML
+                    val contentType = response.header("Content-Type")
+                    if (contentType?.contains("text/html") == true) {
+                        throw IOException("服务器返回了 HTML 网页而不是视频流，请检查链接或鉴权。")
+                    }
 
-                if (length < 0) {
-                    throw IOException("服务器未返回有效的文件大小")
+                    val length = response.header("Content-Length")?.toLongOrNull() ?: -1L
+                    if (length > 0) return length
                 }
 
-                return length
+                // 如果还没拿到
+                throw IOException("无法获取文件大小 (Code: ${response.code}, Headers: ${response.headers})")
             }
         } catch (e: Exception) {
-            throw IOException("OkHttp 获取文件大小出错: ${e.message}", e)
+            throw IOException("获取文件大小时出错: ${e.message}", e)
         }
     }
 

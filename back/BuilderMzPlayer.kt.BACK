@@ -67,6 +67,11 @@ fun BuilderMzPlayer(
         remember { selectedDataSourceFactory(mediaUri, dataSourceType, context) }
     LaunchedEffect(Unit) {
 
+        //Log.d("播放器uri", mediaUri)
+//        exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters
+//            .buildUpon()
+//            .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true) // 禁用文本轨道
+//            .build()
         val preferredAudioLanguage = settingsState.audioLang.ifEmpty { null }
         // --- 字幕语言设置 ---
         val preferredTextLanguage = settingsState.subLang.ifEmpty { null }
@@ -78,44 +83,58 @@ fun BuilderMzPlayer(
 
         // SRT 字幕的 MIME 类型
         val mimeTypeSRT = "application/x-subrip"
-        val mimeTypeASS = "text/x-ssa"          // .ass
-        val mimeTypeVTT = "text/vtt"            // .vtt
-
-
+        exoPlayer.trackSelector
         exoPlayer.trackSelectionParameters = trackSelectionParameters
+        //Log.e("enableTunneling",exoPlayer.isTunnelingEnabled.toString())
 
-        // 1. 构造 MediaItem.Builder
-        //val mediaItemBuilder = MediaItem.Builder()
-        // 2. 设置 URI
-        val finalUri = finalUri(mediaUri)
-        // 1. 构造初始 MediaItem，只包含 URI，不含任何 SubtitleConfiguration
-        val mediaItem = MediaItem.Builder().setUri(finalUri).build()
+        // 根据 URI 类型处理 MediaItem 创建
+        val mediaItem =
+            if (mediaUri.startsWith("smb://") || mediaUri.startsWith("http://") || mediaUri.startsWith(
+                    "https://"
+                ) || mediaUri.startsWith("ftp://") || mediaUri.startsWith("nfs://")
+            ) {
+                MediaItem.fromUri(mediaUri)
+            } else {
+                // 处理本地文件路径
+                val uri = if (mediaUri.startsWith("file://")) {
+                    mediaUri.toUri()
+                } else {
+                    // 假设是文件路径，添加 file:// 前缀
+                    "file://$mediaUri".toUri()
+                }
+                Log.d("MediaItemUri", uri.toString())
+                MediaItem.fromUri(uri)
+            }
+        // 2. 检查是否是需要特殊处理的 .m2ts 文件
+        val isM2ts = mediaUri.endsWith(".m2ts", ignoreCase = true) ||
+                mediaUri.endsWith(".mts", ignoreCase = true)
 
-        // ⭐️ 核心：创建手动加载字幕的 Lambda，用于传递给 SubtitleTrackPanel
-//        val onLoadExternalSubtitles = remember {
-//            {
-//                loadExternalSubtitlesDynamically(exoPlayer, mediaUri, dataSourceFactory)
-//            }
-//        }
+        val mediaSource = if (isM2ts) {
+            Log.w("M2TS_EXTRACTOR", "M2TS file detected. Forcing usage of TsExtractor.")
 
-        exoPlayer.setMediaItem(mediaItem)
+            // 内部匿名类实现的 ExtractorsFactory，只返回 TsExtractor
+            val forcedTsExtractorFactory = ExtractorsFactory {
+                arrayOf<Extractor>(
+                    TsExtractor(
+                        SubtitleParser.Factory.UNSUPPORTED
+                    )
+                )
+            }
+
+            // ⭐️ 修正后的 Media3 v1.8.0 逻辑：将 ExtractorsFactory 传入构造函数
+            ProgressiveMediaSource.Factory(
+                dataSourceFactory,
+                forcedTsExtractorFactory
+            ).createMediaSource(mediaItem)
+
+        } else {
+            // 否则，使用 ExoPlayer 默认的 DefaultMediaSourceFactory
+            Log.d("M2TS_EXTRACTOR", "Standard file. Using default MediaSourceFactory.")
+            DefaultMediaSourceFactory(dataSourceFactory).createMediaSource(mediaItem)
+        }
+        exoPlayer.setMediaSource(mediaSource)
+        //exoPlayer.setMediaItem(mediaItem)
         exoPlayer.prepare()
-
-        // 4. 在这里立即尝试添加外部字幕（无需等待 onTracksChanged）
-        // 因为我们只需要在 prepare 之后，而不是在 prepare 之前。
-//        val externalSubtitles = findExternalSubtitles(mediaUri)
-//        if (externalSubtitles.isNotEmpty()) {
-//            val newMediaItem = mediaItem.buildUpon()
-//                .setSubtitleConfigurations(externalSubtitles)
-//                .build()
-//
-//            // ⭐️ 核心修改：使用 setMediaItem 替换 updateMediaItem
-//            // 0 是当前播放项的索引。false 确保播放位置和状态不被重置。
-//            // 注意：虽然 setMediaItem 会替换当前 MediaItem，但在 prepare 之后调用，
-//            // 且不重置位置，可以达到动态更新字幕配置的目的。
-//            exoPlayer.setMediaItem(newMediaItem)
-//            Log.d("SubtitleLoader", "Deferred adding of ${externalSubtitles.size} external subtitles via updateMediaItem.")
-//        }
         exoPlayer.addListener(object : Player.Listener {
             override fun onTracksChanged(tracks: Tracks) {
                 // Update UI using current tracks.
@@ -123,7 +142,7 @@ fun BuilderMzPlayer(
                 videoPlayerViewModel.mutableSetOfAudioTrackGroups.clear()
                 videoPlayerViewModel.mutableSetOfVideoTrackGroups.clear()
                 videoPlayerViewModel.mutableSetOfTextTrackGroups.clear()
-                Log.e("enableTunneling", exoPlayer.isTunnelingEnabled.toString())
+                Log.e("enableTunneling",exoPlayer.isTunnelingEnabled.toString())
                 // 检测是否有SRT字幕轨道被选中
                 var hasSrtTrackSelected = false
                 var hasPGSTrackSelected = false
@@ -191,7 +210,28 @@ fun BuilderMzPlayer(
 
                     }
                 }
-
+                //  🚀 关键修改：移除强制选择视频轨道的代码// ⚠️ 视频轨道选择逻辑已移除，依赖 ExoPlayer 默认选择器
+                // 原因有些播放有些杜比视界的视频尤其是演示片电视只能其识别成HDR，打开视频轨道面板显示的是两个轨道一个HDR一个是杜比视界
+//                if (videoPlayerViewModel.onTracksChangedState == 0) {
+//                    if (videoPlayerViewModel.mutableSetOfVideoTrackGroups.isNotEmpty()) {
+//                        exoPlayer.trackSelectionParameters =
+//                            exoPlayer.trackSelectionParameters.buildUpon().setOverrideForType(
+//                                TrackSelectionOverride(
+//                                    videoPlayerViewModel.mutableSetOfVideoTrackGroups[0].mediaTrackGroup,
+//                                    0
+//                                )
+//                            ).build()
+//                    }
+//                }
+//                    if (videoPlayerViewModel.mutableSetOfTextTrackGroups.isNotEmpty()) {
+//                        exoPlayer.trackSelectionParameters =
+//                            exoPlayer.trackSelectionParameters.buildUpon().setOverrideForType(
+//                                TrackSelectionOverride(
+//                                    videoPlayerViewModel.mutableSetOfTextTrackGroups[0].mediaTrackGroup,
+//                                    0
+//                                )
+//                            ).build()
+//                    }
                 if (videoPlayerViewModel.mutableSetOfAudioTrackGroups.isNotEmpty()) {
                     for ((index, atGroup) in videoPlayerViewModel.mutableSetOfAudioTrackGroups.withIndex()) {
                         Log.d("VideoTrackGroupsID", atGroup.getTrackFormat(0).id.toString())
@@ -241,10 +281,41 @@ fun rememberPlayer(
 
             }
 
+//        // 根据 URI 协议选择合适的数据源工厂
+//        val dataSourceFactory = if (mediaUri.startsWith("smb://") && dataSourceType == "SMB") {
+//            // SMB 协议
+//
+//            SmbDataSourceFactory()
+//            //val cache = MzDkPlayerApplication.downloadCache
+//
+////         CacheDataSource.Factory()
+////            .setCache(cache)
+////            .setUpstreamDataSourceFactory( SmbDataSourceFactory())
+////            .setCacheWriteDataSinkFactory(
+////                CacheDataSink.Factory().setCache(cache)
+////                .setFragmentSize(20 * 1024 * 1024)
+////                .setBufferSize(8 * 1024 * 1024)) // 使用16MB缓冲
+//            //       .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
+//        } else if ((mediaUri.startsWith("file://") || mediaUri.startsWith("/")) && dataSourceType == "LOCAL") {
+//            // 本地文件协议或绝对路径
+//            DefaultDataSource.Factory(context)
+//        } else if ((mediaUri.startsWith("http://") || mediaUri.startsWith("https://")) && dataSourceType == "WEBDAV") {
+//            WebDavDataSourceFactory()
+//        } else if ((mediaUri.startsWith("ftp://")) && dataSourceType == "FTP") {
+//            FtpDataSourceFactory()
+//        } else if ((mediaUri.startsWith("nfs://")) && dataSourceType == "NFS") {
+//            NFSDataSourceFactory()
+//        } else if ((mediaUri.startsWith("http://") || mediaUri.startsWith("https://")) && dataSourceType == "HTTP") {
+//            DefaultHttpDataSource.Factory()
+//        } else {
+//            // 其他情况（如 http/https），使用默认的 HTTP 数据源
+//            DefaultHttpDataSource.Factory()
+//        }
+
         // --- 1. 配置 LoadControl (80G ISO 优化缓冲策略) ---
-        // 目标：将缓冲内存加大至 500MB，并设置更激进的缓冲时长。
-        // 预估：80GB / 2小时 ≈ 11.1 MB/s (平均码率)
-        // 50秒缓冲所需内存 ≈ 50 * 11.1 MB/s ≈ 555 MB
+    // 目标：将缓冲内存加大至 500MB，并设置更激进的缓冲时长。
+    // 预估：80GB / 2小时 ≈ 11.1 MB/s (平均码率)
+    // 50秒缓冲所需内存 ≈ 50 * 11.1 MB/s ≈ 555 MB
         val optimizedLoadControl = DefaultLoadControl.Builder()
 //            .setBufferDurationsMs(
 //                50_000, // 最小缓冲 50 秒 (Min Buffer)
@@ -255,7 +326,7 @@ fun rememberPlayer(
             .setPrioritizeTimeOverSizeThresholds(true) // 优先保证时间长度，忽略默认的内部大小限制
             .setBackBuffer(5000, true) // 回退缓冲 5 秒，并且允许回退播放 (用于快速 Seek 后退)
             .build()
-        Log.e("enableTunneling", "isSetting ${settingsState.enableTunneling}")
+        Log.e("enableTunneling","isSetting ${settingsState.enableTunneling}")
         // --- 3. 配置 TrackSelector 并设置 Tunneling ---
         val trackSelector = DefaultTrackSelector(context)
         val parameters = trackSelector.buildUponParameters()
@@ -263,15 +334,7 @@ fun rememberPlayer(
             .build()
         trackSelector.setParameters(parameters)
         ExoPlayer.Builder(context).setSeekForwardIncrementMs(30000).setSeekBackIncrementMs(30000)
-            .setTrackSelector(trackSelector).setMediaSourceFactory(
-                DefaultMediaSourceFactory(
-                    selectedDataSourceFactory(
-                        mediaUri,
-                        dataSourceType,
-                        context
-                    )
-                )
-            )
+            .setTrackSelector(trackSelector)
             .setRenderersFactory(renderersFactory).build().apply {
                 playWhenReady = true
                 repeatMode = Player.REPEAT_MODE_ONE
@@ -289,8 +352,18 @@ fun selectedDataSourceFactory(
 ): DataSource.Factory {
     return if (mediaUri.startsWith("smb://") && dataSourceType == "SMB") {
         // SMB 协议
-        SmbDataSourceFactory()
 
+        SmbDataSourceFactory()
+        //val cache = MzDkPlayerApplication.downloadCache
+
+//         CacheDataSource.Factory()
+//            .setCache(cache)
+//            .setUpstreamDataSourceFactory( SmbDataSourceFactory())
+//            .setCacheWriteDataSinkFactory(
+//                CacheDataSink.Factory().setCache(cache)
+//                .setFragmentSize(20 * 1024 * 1024)
+//                .setBufferSize(8 * 1024 * 1024)) // 使用16MB缓冲
+        //       .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
     } else if ((mediaUri.startsWith("file://") || mediaUri.startsWith("/")) && dataSourceType == "LOCAL") {
         // 本地文件协议或绝对路径
         DefaultDataSource.Factory(context)
@@ -307,63 +380,3 @@ fun selectedDataSourceFactory(
         DefaultHttpDataSource.Factory().setReadTimeoutMs(30000).setConnectTimeoutMs(30000)
     }
 }
-
-
-@OptIn(UnstableApi::class)
-fun findExternalSubtitles(mediaUri: String): List<MediaItem.SubtitleConfiguration> {
-    val subtitles = mutableListOf<MediaItem.SubtitleConfiguration>()
-
-    // 1. 获取基础 URI 部分（不含扩展名）
-    val lastDotIndex = mediaUri.lastIndexOf('.')
-    if (lastDotIndex == -1) return subtitles // 没有扩展名，无法处理
-
-    val baseUri = mediaUri.take(lastDotIndex)
-
-    // 定义要查找的字幕扩展名和对应的 MIME 类型
-    val subtitleExtensions = mapOf(
-        ".srt" to "application/x-subrip", // SRT
-        ".ass" to "text/x-ssa",          // ASS/SSA
-        ".ssa" to "text/x-ssa",          // ASS/SSA (另一种扩展名)
-        ".vtt" to "text/vtt"             // WebVTT
-    )
-
-    // 2. 遍历可能的字幕文件
-    for ((ext, mimeType) in subtitleExtensions) {
-        // 构造潜在的字幕文件 URI
-        val subtitleUriString = baseUri + ext
-        val subtitleUri = subtitleUriString.toUri()
-        val fileName = subtitleUriString.substringAfterLast('/').substringAfterLast('\\')
-        // 由于 Media3/ExoPlayer 在加载 MediaItem 时会处理 URI 的有效性
-        // 对于远程文件（如HTTP/SMB），只需要构造URI即可。
-        // 对于本地文件，理论上你需要检查文件是否存在（但对于跨平台/网络，最简单是直接交给播放器处理）
-        // 播放器会尝试加载这个URI，如果失败，它会跳过这个字幕，不会影响视频播放。
-
-        val subtitleConfig = MediaItem.SubtitleConfiguration.Builder(subtitleUri)
-            .setMimeType(mimeType)
-            // 你可能需要根据字幕文件的语言约定来设置语言，这里暂时留空或设置为默认
-            // 例如：如果文件名是 "video.zh.srt"，则可以尝试解析 "zh"
-            // 为了简单起见，我们暂时设置一个默认的 SelectionFlag
-            .setSelectionFlags(C.SELECTION_FLAG_DEFAULT).setLabel("[外部加载]$fileName").setLanguage("zh")
-            .build()
-
-        subtitles.add(subtitleConfig)
-        Log.d("SubtitleLoader", "Candidate subtitle: $subtitleUriString ($mimeType)")
-    }
-
-    return subtitles
-}
-
-fun finalUri(mediaUri: String) =
-    if (mediaUri.startsWith("smb://") || mediaUri.startsWith("http://") || mediaUri.startsWith(
-            "https://"
-        ) || mediaUri.startsWith("ftp://") || mediaUri.startsWith("nfs://")
-    ) {
-        mediaUri.toUri()
-    } else {
-        // 处理本地文件路径
-        if (mediaUri.startsWith("file://")) {
-            mediaUri.toUri()
-        } else {
-            "file://$mediaUri".toUri()
-        }
-    }

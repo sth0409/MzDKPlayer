@@ -74,11 +74,11 @@ fun RowScope.VideoPlayerControllerIndicator(
             onSeek(seekProgress)
         },
         onLeft = {
-            seekProgress = (seekProgress - 0.1f).coerceAtLeast(0f)
+            seekProgress = (seekProgress - 0.016f).coerceAtLeast(0f)
             onSeek(seekProgress)
         },
         onRight = {
-            seekProgress = (seekProgress + 0.1f).coerceAtMost(1f)
+            seekProgress = (seekProgress + 0.016f).coerceAtMost(1f)
             onSeek(seekProgress)
         }
 
@@ -90,14 +90,14 @@ fun RowScope.VideoPlayerControllerIndicator(
         },
         onLeft = {
             seekProgress = progress
-            seekProgress = (seekProgress - 0.1f).coerceAtLeast(0f)
+            seekProgress = (seekProgress - 0.016f).coerceAtLeast(0f)
             onSeek(seekProgress)
 
 
         },
         onRight = {
             seekProgress = progress
-            seekProgress = (seekProgress + 0.1f).coerceAtMost(1f)
+            seekProgress = (seekProgress + 0.016f).coerceAtMost(1f)
             onSeek(seekProgress)
 
         },

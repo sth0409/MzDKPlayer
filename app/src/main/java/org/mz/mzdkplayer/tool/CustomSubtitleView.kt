@@ -86,6 +86,7 @@ fun SubtitleView(
     Log.i("SubtitleView", "Video source: ${videoSourceWidth}x${videoSourceHeight}")
     Log.i("SubtitleView", "Displayed video: ${displayedVideoRect.widthDp}x${displayedVideoRect.heightDp} at (${displayedVideoRect.offsetXDp}, ${displayedVideoRect.offsetYDp})")
 
+
     Box(
         modifier = Modifier.fillMaxSize() // 主容器填满，内部元素使用传入的modifier定位
     ) {
@@ -152,7 +153,7 @@ fun SubtitleView(
         }
 // === 位图字幕 ===
         Box(modifier = Modifier.fillMaxSize()) {
-            cueGroup.cues.forEach { cue ->
+            cueGroup.cues.forEachIndexed { index, cue ->
                 cue.bitmap?.let { bitmap ->
                     // >>> 强制居中逻辑：覆盖 position/line/anchor
                     // 替换从这里开始
@@ -232,13 +233,14 @@ fun SubtitleView(
 
                     val finalOffsetX = displayedVideoRect.offsetXDp + contentOffsetX
                     val finalOffsetY = displayedVideoRect.offsetYDp + contentOffsetY
-
+                    Log.i("SubtitleView", "zindex${cue.zIndex}")
+                    val effectiveZIndex = cue.zIndex.toFloat() + (index * 0.01f)
                     Box(
                         modifier = Modifier
                             .offset(x = finalOffsetX.dp, y = finalOffsetY.dp)
                             .width(bitmapWidthDp.dp)
                             .height(bitmapHeightDp.dp)
-                            .zIndex(cue.zIndex.toFloat())
+                            .zIndex(effectiveZIndex)
                     ) {
                         Canvas(modifier = Modifier.fillMaxSize()) {
                             val dstWidthPx = (bitmapWidthDp * density).toInt()
@@ -312,19 +314,19 @@ private fun calculateDisplayedVideoRect(
     )
 }
 
-/**
- * Returns the current screen dimensions in dp.
- *
- * @return A [Pair] of [Int] values representing the screen width and height in dp.
- */
-@Composable
-private fun getScreenDimensions(): Pair<Int, Int> {
-    val context = LocalContext.current
-    val displayMetrics: DisplayMetrics = context.resources.displayMetrics
-    val widthDp = (displayMetrics.widthPixels / displayMetrics.density).toInt()
-    val heightDp = (displayMetrics.heightPixels / displayMetrics.density).toInt()
-    return Pair(widthDp, heightDp)
-}
+///**
+// * Returns the current screen dimensions in dp.
+// *
+// * @return A [Pair] of [Int] values representing the screen width and height in dp.
+// */
+//@Composable
+//private fun getScreenDimensions(): Pair<Int, Int> {
+//    val context = LocalContext.current
+//    val displayMetrics: DisplayMetrics = context.resources.displayMetrics
+//    val widthDp = (displayMetrics.widthPixels / displayMetrics.density).toInt()
+//    val heightDp = (displayMetrics.heightPixels / displayMetrics.density).toInt()
+//    return Pair(widthDp, heightDp)
+//}
 
 
 

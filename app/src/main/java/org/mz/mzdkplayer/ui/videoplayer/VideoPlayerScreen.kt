@@ -78,8 +78,11 @@ import org.mz.mzdkplayer.data.model.DanmakuScreenRatio
 import org.mz.mzdkplayer.data.model.MediaHistoryRecord
 
 import org.mz.mzdkplayer.data.repository.DanmakuSettingsManager
+import org.mz.mzdkplayer.tool.FtpDataSource
+import org.mz.mzdkplayer.tool.SmbDataSource
 import org.mz.mzdkplayer.tool.SmbUtils
 import org.mz.mzdkplayer.tool.SubtitleView
+import org.mz.mzdkplayer.tool.WebDavDataSource
 import org.mz.mzdkplayer.tool.handleDPadKeyEvents
 
 import org.mz.mzdkplayer.ui.screen.common.LoadingScreen
@@ -131,7 +134,7 @@ fun VideoPlayerScreen(
     // 获取当前 Compose 上下文
     val context = LocalContext.current
     // 记住并创建 ExoPlayer 实例
-    val exoPlayer = rememberPlayer(context, mediaUri, dataSourceType)
+    val exoPlayer = rememberPlayer(context, mediaUri, dataSourceType,settingsViewModel)
     // 记住并创建视频播放器状态管理器
     val videoPlayerState = rememberVideoPlayerState(hideSeconds = 6)
     // 获取 ViewModel 实例
@@ -209,6 +212,13 @@ fun VideoPlayerScreen(
             // 4. 释放资源
             exoPlayer.release()
             mDanmakuPlayer.release()
+
+            // ⭐️ 新增：退出播放页面时，彻底关闭 SMB 连接
+            // 只有在这里调用，才能既保证播放时的连接复用，又保证退出时不泄露连接
+            // 统一释放所有协议的全局连接
+            SmbDataSource.releaseGlobalResources()
+            WebDavDataSource.releaseGlobalResources()
+            FtpDataSource.releaseGlobalResources()
         }
     }
     LaunchedEffect(Unit) {
@@ -725,7 +735,9 @@ fun VideoPlayerScreen(
                             videoPlayerViewModel.selectedStIndex = it
                         }, // 索引变化回调
                         videoPlayerViewModel.mutableSetOfTextTrackGroups, // 字幕轨道组
-                        exoPlayer // ExoPlayer 实例
+                        exoPlayer, // ExoPlayer 实例,
+                        mediaUri
+
                     )
                 }
             }

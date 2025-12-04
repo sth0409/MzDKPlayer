@@ -1,6 +1,6 @@
-package org.mz.mzdkplayer.ui.screen.movie
+package org.mz.mzdkplayer.ui.screen.tv
 
-import android.view.KeyEvent
+import android.graphics.Bitmap
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -9,12 +9,9 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.focusable
-import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -26,12 +23,9 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.runtime.Composable
@@ -40,7 +34,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,79 +41,95 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.onPreviewKeyEvent
-import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
+import androidx.core.graphics.drawable.toBitmap
 import androidx.navigation.NavHostController
+import androidx.palette.graphics.Palette
 import androidx.tv.material3.Border
 import androidx.tv.material3.ClickableSurfaceDefaults
 import androidx.tv.material3.Icon
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Surface
 import androidx.tv.material3.Text
+import coil3.BitmapImage
+import coil3.asDrawable
 import coil3.compose.AsyncImage
-import kotlinx.coroutines.launch
+import coil3.request.ImageRequest
+import coil3.request.allowHardware
+import coil3.request.crossfade
 import org.mz.mzdkplayer.R
-import org.mz.mzdkplayer.data.model.MovieDetails
+import org.mz.mzdkplayer.data.model.TVEpisode
+import org.mz.mzdkplayer.data.model.TVSeriesDetails
 import org.mz.mzdkplayer.data.repository.Resource
 import org.mz.mzdkplayer.di.RepositoryProvider
 import org.mz.mzdkplayer.tool.Tools.getCountryName
 import org.mz.mzdkplayer.tool.viewModelWithFactory
-import org.mz.mzdkplayer.ui.screen.common.LoadingScreen
 import org.mz.mzdkplayer.ui.screen.common.LoadingScreenWithSub
 import org.mz.mzdkplayer.ui.screen.common.LocalizedStatusText
 import org.mz.mzdkplayer.ui.screen.common.MyIconButton
+import org.mz.mzdkplayer.ui.screen.movie.ErrorView
+import org.mz.mzdkplayer.ui.screen.movie.FullDescriptionDialog
 import org.mz.mzdkplayer.ui.screen.vm.MovieViewModel
-import java.net.URLDecoder
 import java.net.URLEncoder
 import java.util.Locale
 
 @Composable
-fun MovieDetailsScreen(
+fun TVSeriesDetailsScreen(
     videoUri: String,
     dataSourceType: String,
     fileName: String,
     connectionName: String,
-    movieId: Int,
+    seriesId: Int,
+    currentSeason: Int,
+    currentEpisode: Int,
     navController: NavHostController,
     movieViewModel: MovieViewModel = viewModelWithFactory {
         RepositoryProvider.createMovieViewModel()
     }
 ) {
-    val movieDetails by movieViewModel.movieDeResults.collectAsState()
+    val tvSeriesDetails by movieViewModel.tvSeriesResults.collectAsState()
+    val tvEpisodeDetails by movieViewModel.tvEpisodeResults.collectAsState()
 
-    // 解码 URI 用于数据库查询
-    val decodedUri = remember(videoUri) {
-        URLDecoder.decode(videoUri, "UTF-8")
-    }
-    LaunchedEffect(movieId) {
-        if (movieId > 0) {
-            // 调用带缓存的方法
-            movieViewModel.getMovieDetailsWithCache(movieId, decodedUri, dataSourceType, fileName, connectionName)
-        }
-    }
     val videoUriEncoder = URLEncoder.encode(videoUri, "UTF-8")
     val fileNameEncoder = URLEncoder.encode(fileName, "UTF-8")
     val connectionNameEncoder = URLEncoder.encode(connectionName, "UTF-8")
-    Box(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        when (val result = movieDetails) {
+
+    val decodedUri = remember(videoUri) {
+        java.net.URLDecoder.decode(videoUri, "UTF-8")
+    }
+
+    LaunchedEffect(seriesId, currentSeason, currentEpisode) {
+        if (seriesId > 0 && currentSeason > 0 && currentEpisode > 0) {
+            movieViewModel.getTVDetailsWithCache(
+                seriesId = seriesId,
+                season = currentSeason,
+                episode = currentEpisode,
+                videoUri = decodedUri,
+                dataSourceType,
+                fileName,
+                connectionName
+            )
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        when (val result = tvSeriesDetails) {
             is Resource.Success -> {
-                MovieContent(
-                    movie = result.data,
+                TVSeriesContent(
+                    tvSeries = result.data,
+                    tvEpisodeState = tvEpisodeDetails,
+                    currentSeason = currentSeason,
+                    currentEpisode = currentEpisode,
                     onPlayClick = {
                         navController.navigate("VideoPlayer/$videoUriEncoder/$dataSourceType/$fileNameEncoder/$connectionNameEncoder")
                     },
@@ -137,13 +146,12 @@ fun MovieDetailsScreen(
                     verticalArrangement = Arrangement.Center
                 ) {
                     LoadingScreenWithSub(
-                        text = "正在加载电影详情...",
+                        text = "正在加载剧集信息...",
                         modifier = Modifier
                             .fillMaxWidth()
                             .fillMaxHeight(0.7f),
                         subtitle = "如果你不想看到详情页，可以在设置中设置不显示详情页"
                     )
-                    Spacer(modifier = Modifier.height(16.dp))
                     MyIconButton(
                         text = "立即播放",
                         icon = R.drawable.baseline_play_arrow_24,
@@ -154,44 +162,81 @@ fun MovieDetailsScreen(
             }
 
             is Resource.Error -> ErrorView(
-                message = "加载失败",
+                message = "剧集加载失败: ${result.message}",
                 onPlayAnyway = { navController.navigate("VideoPlayer/$videoUriEncoder/$dataSourceType/$fileNameEncoder/$connectionNameEncoder") }
             )
+
         }
     }
 }
 
 @Composable
-private fun MovieContent(
-    movie: MovieDetails,
+private fun TVSeriesContent(
+    tvSeries: TVSeriesDetails,
+    tvEpisodeState: Resource<TVEpisode>,
+    currentSeason: Int,
+    currentEpisode: Int,
     onPlayClick: () -> Unit,
     dataSourceType: String,
     fileName: String,
     connectionName: String
 ) {
-    // 控制详细简介弹窗的显示
     var showFullDescDialog by remember { mutableStateOf(false) }
-    val titleFR = remember { FocusRequester() }
-    // 使用 LazyListState 管理滚动
     val listState = rememberLazyListState()
+    val titleFR = remember { FocusRequester() }
 
     // 主题色
     var themeColor by remember { mutableStateOf(Color(0xFF121212)) }
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
-       // listState.scrollToItem(0)
-        titleFR.requestFocus()
+        //listState.scrollToItem(0)
+        //titleFR.requestFocus()
+    }
+
+    // 背景图URL
+    val bgImageUrl = remember(tvEpisodeState, tvSeries) {
+        if (tvEpisodeState is Resource.Success && !tvEpisodeState.data.stillPath.isNullOrEmpty()) {
+            "https://image.tmdb.org/t/p/w1280${tvEpisodeState.data.stillPath}"
+        } else if (!tvSeries.backdropPath.isNullOrEmpty()) {
+            "https://image.tmdb.org/t/p/w1280${tvSeries.backdropPath}"
+        } else {
+            null
+        }
     }
 
     Box(modifier = Modifier.fillMaxSize().background(themeColor)) {
         // --- 背景层 ---
-        if (!movie.backdropPath.isNullOrEmpty()) {
+        if (bgImageUrl != null) {
             AsyncImage(
-                model = "https://image.tmdb.org/t/p/w1280${movie.backdropPath}",
+                model = ImageRequest.Builder(context)
+                    .data(bgImageUrl)
+                    .allowHardware(false)
+                    .crossfade(true)
+                    .build(),
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop,
-                alpha = 0.8f
+                onSuccess = { result ->
+                    val image = result.result.image
+                    val bitmap = (image as? BitmapImage)?.bitmap
+                        ?: image.asDrawable(context.resources).toBitmap()
+                    bitmap.let { bmp ->
+                        Palette.from(bmp).generate { palette ->
+                            val dominant = palette?.darkVibrantSwatch?.rgb ?: palette?.dominantSwatch?.rgb
+                            if (dominant != null) {
+                                val original = Color(dominant)
+                                // 压暗主题色
+                                themeColor = Color(
+                                    red = original.red * 0.25f,
+                                    green = original.green * 0.25f,
+                                    blue = original.blue * 0.25f,
+                                    alpha = 1f
+                                )
+                            }
+                        }
+                    }
+                }
             )
         } else {
             Box(modifier = Modifier.fillMaxSize().background(Color.Black))
@@ -239,8 +284,9 @@ private fun MovieContent(
         LazyColumn(
             state = listState,
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(0.dp)
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)
         ) {
+
             // === 第一屏：沉浸式主信息 ===
             item {
                 Box(
@@ -253,7 +299,7 @@ private fun MovieContent(
                         modifier = Modifier
                             .align(Alignment.BottomStart)
                             .fillMaxWidth()
-                            .height(355.dp) // 约1/4屏幕高度
+                            .height(380.dp) // 约1/4屏幕高度
                             .background(
                                 Brush.verticalGradient(
                                     colors = listOf(
@@ -265,9 +311,9 @@ private fun MovieContent(
                                     endY = Float.POSITIVE_INFINITY
                                 )
                             )
-                            .padding(start = 56.dp, end = 56.dp, bottom = 32.dp)
+                            .padding(start = 56.dp, end = 56.dp, bottom = 30.dp)
                     ) {
-                        // 电影标题
+                        // 剧集标题
                         Surface(
                             onClick = { onPlayClick() },
                             shape = ClickableSurfaceDefaults.shape(shape = RoundedCornerShape(8.dp)),
@@ -279,10 +325,10 @@ private fun MovieContent(
                             border = ClickableSurfaceDefaults.border(
                                 focusedBorder = Border(BorderStroke(1.dp, Color.White.copy(alpha = 0.5f)))
                             ),
-                            modifier = Modifier.offset(x = (-8).dp).focusRequester(titleFR)
+                            modifier = Modifier.offset(x = (-8).dp)
                         ) {
                             Text(
-                                text = movie.title ?: "未知电影",
+                                text = "${tvSeries.name} S${currentSeason}·E${currentEpisode}" ?: "未知剧集",
                                 style = MaterialTheme.typography.displaySmall.copy(
                                     shadow = Shadow(
                                         color = Color.Black.copy(alpha = 0.8f),
@@ -293,21 +339,8 @@ private fun MovieContent(
                                 fontWeight = FontWeight.Bold,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp).focusRequester(titleFR),
                                 color = Color.White
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        // 原始标题
-                        if (!movie.originalTitle.isNullOrEmpty() && movie.originalTitle != movie.title) {
-                            Text(
-                                text = movie.originalTitle,
-                                style = MaterialTheme.typography.titleMedium,
-                                color = Color.White.copy(alpha = 0.7f),
-                                fontStyle = FontStyle.Italic,
-                                modifier = Modifier.padding(top = 0.dp)
                             )
                         }
 
@@ -318,11 +351,11 @@ private fun MovieContent(
                             // 评分
                             Box(
                                 modifier = Modifier
-                                    .background(Color(0xFFEDA33D), RoundedCornerShape(4.dp))
+                                    .background(Color(0xFFFFC200), RoundedCornerShape(4.dp))
                                     .padding(horizontal = 8.dp, vertical = 2.dp)
                             ) {
                                 Text(
-                                    text = "TMDB ${String.format(Locale.getDefault(), "%.1f", movie.voteAverage)}",
+                                    text = "TMDB ${String.format(Locale.getDefault(), "%.1f", tvSeries.voteAverage)}",
                                     style = MaterialTheme.typography.labelMedium,
                                     color = Color.Black,
                                     fontWeight = FontWeight.Bold
@@ -333,7 +366,7 @@ private fun MovieContent(
 
                             // 年份
                             Text(
-                                text = movie.releaseDate?.take(4) ?: "",
+                                text = tvSeries.firstAirDate?.take(4) ?: "",
                                 color = Color.White,
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold
@@ -344,7 +377,7 @@ private fun MovieContent(
                             Spacer(modifier = Modifier.width(12.dp))
 
                             // 主要类型 (只显示前两个)
-                            val mainGenres = movie.genreList.take(2).joinToString(" • ") { it.name }
+                            val mainGenres = tvSeries.genreList.take(2).joinToString(" • ") { it.name }
                             if (mainGenres.isNotEmpty()) {
                                 Text(
                                     text = mainGenres,
@@ -357,7 +390,7 @@ private fun MovieContent(
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // 电影简介 (精简版)
+                        // 剧集简介 (精简版)
                         Surface(
                             onClick = { showFullDescDialog = true },
                             shape = ClickableSurfaceDefaults.shape(shape = RoundedCornerShape(8.dp)),
@@ -372,7 +405,7 @@ private fun MovieContent(
                         ) {
                             Column(modifier = Modifier.padding(8.dp)) {
                                 Text(
-                                    text = movie.overview ?: "暂无简介",
+                                    text = tvSeries.overview ?: "暂无简介",
                                     style = MaterialTheme.typography.bodyLarge.copy(
                                         shadow = Shadow(color = Color.Black, blurRadius = 4f)
                                     ),
@@ -393,11 +426,17 @@ private fun MovieContent(
                         Spacer(modifier = Modifier.height(20.dp))
 
                         // 播放按钮
+                        val buttonText = if (currentSeason > 0 && currentEpisode > 0)
+                            "播放 S${currentSeason} E${currentEpisode}"
+                        else
+                            "立即播放"
+
                         MyIconButton(
-                            text = "立即播放",
+                            text = buttonText,
                             icon = R.drawable.baseline_play_arrow_24,
                             modifier = Modifier
                                 .width(210.dp),
+
                             onClick = onPlayClick
                         )
                     }
@@ -421,13 +460,37 @@ private fun MovieContent(
                         .background(themeColor)
                         .padding(horizontal = 56.dp, vertical = 24.dp)
                 ) {
-                    // 电影海报卡片
-                    MoviePosterSection(movie)
+                    // 当前播放信息
+                    Text(
+                        text = "当前播放信息",
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = 24.dp)
+                    )
+
+                    // 当前单集详情卡片
+                    if (currentSeason > 0 && currentEpisode > 0) {
+                        when (tvEpisodeState) {
+                            is Resource.Success -> {
+                                CurrentEpisodeInfoSection(
+                                    season = currentSeason,
+                                    episode = currentEpisode,
+                                    details = tvEpisodeState.data,
+                                    containerColor = Color.White.copy(alpha = 0.08f)
+                                )
+                            }
+                            is Resource.Loading -> {
+                                Text("加载单集详情中...", color = Color.Gray)
+                            }
+                            else -> {}
+                        }
+                    }
 
                     Spacer(modifier = Modifier.height(32.dp))
 
-                    // 电影完整信息卡片
-                    MovieAdditionalInfoSection(movie)
+                    // 剧集完整信息卡片 (将次要信息移到这里)
+                    SeriesAdditionalInfoSection(tvSeries)
 
                     Spacer(modifier = Modifier.height(24.dp))
 
@@ -445,13 +508,105 @@ private fun MovieContent(
         }
     }
 
-    // 全屏简介弹窗
     if (showFullDescDialog) {
         FullDescriptionDialog(
-            title = movie.title ?: "",
-            overview = movie.overview ?: "暂无内容",
+            title = tvSeries.name ?: "",
+            overview = tvSeries.overview ?: "暂无内容",
             onDismiss = { showFullDescDialog = false }
         )
+    }
+}
+
+// 新增：剧集附加信息部分
+@Composable
+private fun SeriesAdditionalInfoSection(tvSeries: TVSeriesDetails) {
+    Surface(
+        onClick = { },
+        shape = ClickableSurfaceDefaults.shape(shape = RoundedCornerShape(12.dp)),
+        colors = ClickableSurfaceDefaults.colors(
+            containerColor = Color.White.copy(alpha = 0.05f),
+            focusedContainerColor = Color.White.copy(alpha = 0.1f),
+            pressedContainerColor = Color.White.copy(alpha = 0.15f)
+        ),
+        border = ClickableSurfaceDefaults.border(
+            focusedBorder = Border(BorderStroke(1.dp, Color.White.copy(alpha = 0.3f)))
+        ),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.padding(24.dp)
+        ) {
+            Text(
+                text = "剧集详情",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFFCCCCCC)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // 完整季数/集数
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "季数/集数: ",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray,
+                    modifier = Modifier.width(100.dp)
+                )
+                Text(
+                    text = "${tvSeries.numberOfSeasons} 季  ${tvSeries.numberOfEpisodes} 集",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.LightGray
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // 完整类型列表
+            Row(verticalAlignment = Alignment.Top) {
+                Text(
+                    text = "类型: ",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray,
+                    modifier = Modifier.width(100.dp)
+                )
+                Text(
+                    text = tvSeries.genreList.joinToString(" • ") { it.name },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.LightGray,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // 制作国家
+            val countries = tvSeries.originCountry.joinToString(", ") { getCountryName(it) }
+            if (countries.isNotEmpty()) {
+                Row(verticalAlignment = Alignment.Top) {
+                    Text(
+                        text = "制作国家: ",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Gray,
+                        modifier = Modifier.width(100.dp)
+                    )
+                    Text(
+                        text = countries,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.LightGray
+                    )
+                }
+            }
+
+            // 状态
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "状态: ",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray,
+                    modifier = Modifier.width(100.dp)
+                )
+                LocalizedStatusText(tvSeries.status, )
+            }
+        }
     }
 }
 
@@ -482,200 +637,6 @@ private fun AnimatedDownArrow() {
             tint = Color.White.copy(alpha = 0.5f),
             modifier = Modifier.size(32.dp)
         )
-    }
-}
-
-// 新增：电影海报部分
-@Composable
-private fun MoviePosterSection(movie: MovieDetails) {
-    Surface(
-        onClick = { },
-        shape = ClickableSurfaceDefaults.shape(shape = RoundedCornerShape(12.dp)),
-        colors = ClickableSurfaceDefaults.colors(
-            containerColor = Color.White.copy(alpha = 0.05f),
-            focusedContainerColor = Color.White.copy(alpha = 0.1f),
-            pressedContainerColor = Color.White.copy(alpha = 0.15f)
-        ),
-        border = ClickableSurfaceDefaults.border(
-            focusedBorder = Border(BorderStroke(1.dp, Color.White.copy(alpha = 0.3f)))
-        ),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Row(
-            modifier = Modifier.padding(24.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // 海报图
-            Box(
-                modifier = Modifier
-                    .width(160.dp)
-                    .aspectRatio(2f / 3f)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(Color.Black)
-            ) {
-                if (!movie.posterPath.isNullOrEmpty()) {
-                    AsyncImage(
-                        model = "https://image.tmdb.org/t/p/w500${movie.posterPath}",
-                        contentDescription = movie.title,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                } else {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("No Poster", color = Color.Gray, style = MaterialTheme.typography.labelSmall)
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.width(24.dp))
-
-            // 右侧信息
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = "电影海报",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFFCCCCCC)
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Text(
-                    text = movie.title ?: "未知电影",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-
-                if (!movie.originalTitle.isNullOrEmpty() && movie.originalTitle != movie.title) {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = movie.originalTitle,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Gray,
-                        fontStyle = FontStyle.Italic
-                    )
-                }
-            }
-        }
-    }
-}
-
-// 新增：电影附加信息部分
-@Composable
-private fun MovieAdditionalInfoSection(movie: MovieDetails) {
-    Surface(
-        onClick = { },
-        shape = ClickableSurfaceDefaults.shape(shape = RoundedCornerShape(12.dp)),
-        colors = ClickableSurfaceDefaults.colors(
-            containerColor = Color.White.copy(alpha = 0.05f),
-            focusedContainerColor = Color.White.copy(alpha = 0.1f),
-            pressedContainerColor = Color.White.copy(alpha = 0.15f)
-        ),
-        border = ClickableSurfaceDefaults.border(
-            focusedBorder = Border(BorderStroke(1.dp, Color.White.copy(alpha = 0.3f)))
-        ),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(
-            modifier = Modifier.padding(24.dp)
-        ) {
-            Text(
-                text = "电影详情",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFFCCCCCC)
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // 完整类型列表
-            Row(verticalAlignment = Alignment.Top) {
-                Text(
-                    text = "类型: ",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray,
-                    modifier = Modifier.width(80.dp)
-                )
-                Text(
-                    text = movie.genreList.joinToString(" • ") { it.name },
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.LightGray,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // 制作国家
-            val countries = movie.originCountry.joinToString(", ") { getCountryName(it) }
-            if (countries.isNotEmpty()) {
-                Row(verticalAlignment = Alignment.Top) {
-                    Text(
-                        text = "制作国家: ",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Gray,
-                        modifier = Modifier.width(80.dp)
-                    )
-                    Text(
-                        text = countries,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.LightGray
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // 状态
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = "状态: ",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray,
-                    modifier = Modifier.width(80.dp)
-                )
-                LocalizedStatusText(movie.status, )
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // 上映日期
-            if (!movie.releaseDate.isNullOrEmpty()) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "上映日期: ",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Gray,
-                        modifier = Modifier.width(80.dp)
-                    )
-                    Text(
-                        text = movie.releaseDate,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.LightGray
-                    )
-                }
-            }
-
-            // 运行时间
-//            if (movie.runtime != null && movie.runtime > 0) {
-//                Spacer(modifier = Modifier.height(8.dp))
-//                Row(verticalAlignment = Alignment.CenterVertically) {
-//                    Text(
-//                        text = "片长: ",
-//                        style = MaterialTheme.typography.bodyMedium,
-//                        color = Color.Gray,
-//                        modifier = Modifier.width(80.dp)
-//                    )
-//                    Text(
-//                        text = "${movie.runtime} 分钟",
-//                        style = MaterialTheme.typography.bodyMedium,
-//                        color = Color.LightGray
-//                    )
-//                }
-//            }
-        }
     }
 }
 
@@ -740,122 +701,131 @@ private fun InfoRow(label: String, value: String) {
 }
 
 @Composable
-fun FullDescriptionDialog(
-    title: String,
-    overview: String,
-    onDismiss: () -> Unit
+private fun CurrentEpisodeInfoSection(
+    season: Int,
+    episode: Int,
+    details: TVEpisode,
+    containerColor: Color
 ) {
-    Dialog(onDismissRequest = onDismiss) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(24.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(Color(0xFF1E1E1E))
-        ) {
-            Column(
+    var isSpoilerVisible by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(containerColor, RoundedCornerShape(12.dp))
+            .border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
+            .padding(24.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = "正在播放",
+                style = MaterialTheme.typography.labelMedium,
+                color = Color(0xFF12EA89),
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            Text(
+                text = "S${season} E${episode}",
+                style = MaterialTheme.typography.titleMedium,
+                color = Color.White,
+                fontWeight = FontWeight.Black
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row(modifier = Modifier.fillMaxWidth()) {
+            // 单集缩略图
+            Box(
                 modifier = Modifier
-                    .padding(32.dp)
-                    .fillMaxSize()
+                    .width(220.dp)
+                    .aspectRatio(16f / 9f)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color.Black)
             ) {
+                if (!details.stillPath.isNullOrEmpty()) {
+                    AsyncImage(
+                        model = "https://image.tmdb.org/t/p/w500${details.stillPath}",
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("No Image", color = Color.Gray, style = MaterialTheme.typography.labelSmall)
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.width(24.dp))
+
+            // 单集文字信息
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = title,
-                    style = MaterialTheme.typography.headlineMedium,
+                    text = details.name,
+                    style = MaterialTheme.typography.headlineSmall,
                     color = Color.White,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                val runtimeText = if (details.runtime != null && details.runtime > 0)
+                    "  |  ${details.runtime} min" else ""
+
+                Text(
+                    text = "放送日期: ${details.airDate}$runtimeText",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.LightGray
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(1.dp)
-                        .background(Color.Gray.copy(alpha = 0.3f))
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // 滚动文本区域
-                val scrollState = rememberScrollState()
-                val coroutineScope = rememberCoroutineScope()
-                var isFocused by remember { mutableStateOf(false) }
-
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                        .border(
-                            width = if (isFocused) 2.dp else 0.dp,
-                            color = if (isFocused) Color.White.copy(alpha = 0.5f) else Color.Transparent,
-                            shape = RoundedCornerShape(8.dp)
+                // 防剧透简介逻辑
+                if (details.overview.isNotEmpty()) {
+                    if (isSpoilerVisible) {
+                        Text(
+                            text = details.overview,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.LightGray,
+                            lineHeight = 24.sp
                         )
-                        .onFocusChanged { isFocused = it.isFocused }
-                        .focusable()
-                        .onPreviewKeyEvent { event ->
-                            if (event.type == KeyEventType.KeyDown) {
-                                when (event.nativeKeyEvent.keyCode) {
-                                    KeyEvent.KEYCODE_DPAD_DOWN -> {
-                                        coroutineScope.launch {
-                                            scrollState.animateScrollBy(200f)
-                                        }
-                                        true
-                                    }
-
-                                    KeyEvent.KEYCODE_DPAD_UP -> {
-                                        coroutineScope.launch {
-                                            scrollState.animateScrollBy(-200f)
-                                        }
-                                        true
-                                    }
-
-                                    else -> false
-                                }
-                            } else {
-                                false
+                    } else {
+                        Surface(
+                            onClick = { isSpoilerVisible = true },
+                            shape = ClickableSurfaceDefaults.shape(shape = RoundedCornerShape(4.dp)),
+                            colors = ClickableSurfaceDefaults.colors(
+                                containerColor = Color.White.copy(alpha = 0.1f),
+                                focusedContainerColor = Color.White.copy(alpha = 0.2f)
+                            ),
+                            scale = ClickableSurfaceDefaults.scale(focusedScale = 1.05f),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Text(
+                                    text = "显示单集简介 (可能涉及剧透)",
+                                    color = Color.Gray,
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
                             }
                         }
-                        .verticalScroll(scrollState)
-                        .padding(8.dp)
-                ) {
+                    }
+                } else {
                     Text(
-                        text = overview,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = Color.LightGray,
-                        lineHeight = 32.sp,
-                        fontSize = 18.sp
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    MyIconButton(
-                        text = "关闭",
-                        icon = R.drawable.baseline_play_arrow_24,
-                        modifier = Modifier.width(120.dp),
-                        onClick = onDismiss
+                        text = "暂无本集简介",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Gray.copy(alpha = 0.5f)
                     )
                 }
             }
-        }
-    }
-}
-
-@Composable
-fun ErrorView(message: String, onPlayAnyway: () -> Unit) {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(message, color = Color.White)
-            Spacer(modifier = Modifier.height(16.dp))
-            MyIconButton(
-                text = "尝试直接播放",
-                icon = R.drawable.baseline_play_arrow_24,
-                onClick = onPlayAnyway,
-            )
         }
     }
 }

@@ -15,8 +15,8 @@ android {
         applicationId = "org.mz.mzdkplayer"
         minSdk = 23
         targetSdk = 36
-        versionCode = 7
-        versionName = "1.08"
+        versionCode = 8
+        versionName = "1.10"
         ndk {
             //noinspection ChromeOsAbiSupport
             abiFilters += listOf("armeabi-v7a", "x86")
@@ -102,7 +102,7 @@ dependencies {
     implementation(libs.androidx.room.paging)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
-
+    //implementation("org.videolan:libbluray:1.3.4")
     // 暂时不需要原生ass显示
     //implementation(libs.ass.media)
     // 👇 修改这一行：排除 xpp3 和 stax

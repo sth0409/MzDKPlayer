@@ -1,5 +1,6 @@
 package org.mz.mzdkplayer.ui.screen.setting
 
+import SolarSystem
 import android.content.Context
 import android.content.pm.PackageManager
 import androidx.compose.foundation.background
@@ -30,6 +31,7 @@ import androidx.tv.material3.Switch
 import androidx.tv.material3.Text
 import org.mz.mzdkplayer.R
 import org.mz.mzdkplayer.di.RepositoryProvider
+import org.mz.mzdkplayer.tool.BlackHoleSimulationScreen
 import org.mz.mzdkplayer.tool.viewModelWithFactory
 import org.mz.mzdkplayer.ui.screen.common.FilePermissionScreen
 import org.mz.mzdkplayer.ui.screen.common.MyIconButton
@@ -60,7 +62,45 @@ fun SettingsScreen(mainNavController: NavHostController,settingsVM: SettingsView
 
     // 当前选中的分类，默认为第一个
     var selectedCategory by remember { mutableStateOf(SettingCategory.General) }
+// 全局彩蛋状态
+    var currentEggState by remember { mutableStateOf(EggState.BLACK_HOLE) }
 
+    // 对话框状态
+    var showEggDialog by remember { mutableStateOf(false) }
+
+    // 焦点计数器 (用于隐藏的计数)
+    var focusClickCount by remember { mutableIntStateOf(0) }
+    // 跟踪上次点击时间，用于防止长按或焦点保持
+    var lastClickTime by remember { mutableLongStateOf(0L) }
+
+    // 重置焦点的协程
+    LaunchedEffect(focusClickCount) {
+        if (focusClickCount > 0) {
+            val currentTime = System.currentTimeMillis()
+            // 如果两次点击间隔超过 1000ms，则重置计数器
+            if (currentTime - lastClickTime > 1000L) {
+                focusClickCount = 0
+            }
+            lastClickTime = currentTime
+        }
+    }
+    Box(modifier = Modifier.fillMaxSize()) {
+        // --- 动态背景 (彩蛋内容) ---
+        when (currentEggState) {
+            EggState.SOLAR_SYSTEM -> {
+                // 太阳系作为背景
+                SolarSystem(Modifier.matchParentSize())
+            }
+            EggState.BLACK_HOLE -> {
+                // 黑洞作为背景
+                BlackHoleSimulationScreen(Modifier.matchParentSize())
+            }
+            else -> {
+                // 默认背景 (可选)
+                Spacer(Modifier.matchParentSize().background(MaterialTheme.colorScheme.background))
+            }
+        }
+        }
     // 使用 Row 实现左右两栏布局
     Row(
         modifier = Modifier
@@ -75,7 +115,8 @@ fun SettingsScreen(mainNavController: NavHostController,settingsVM: SettingsView
                 .selectableGroup() // 优化无障碍和焦点
                 .padding(end = 12.dp),
             contentPadding = PaddingValues(horizontal = 16.dp)
-        ) {
+        )
+        {
             item {
                 Text(
                     text = "设置",
@@ -444,4 +485,11 @@ fun parseBgColorName(color: Long): String = when (color) {
     0x80FFFF00 -> "黄色 (50%)"
     0x00000000L -> "透明"
     else -> "自定义"
+}
+
+// --- 彩蛋状态枚举 ---
+enum class EggState {
+    NONE, // 未激活
+    SOLAR_SYSTEM, // 太阳系背景
+    BLACK_HOLE // 黑洞背景
 }

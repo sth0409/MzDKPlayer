@@ -1,52 +1,49 @@
 package org.mz.mzdkplayer.ui.videoplayer.components
 
+
 import android.annotation.SuppressLint
 import android.content.Context
-
 import android.view.View
 import androidx.annotation.OptIn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-
 import androidx.compose.runtime.remember
-
+import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
-
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
-import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.Log
+import androidx.media3.common.util.TimestampAdjuster
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.DefaultRenderersFactory
+import androidx.media3.exoplayer.DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
-import org.mz.mzdkplayer.tool.SmbDataSourceFactory
-
-import org.mz.mzdkplayer.ui.screen.vm.VideoPlayerViewModel
-
-import androidx.core.net.toUri
-import androidx.media3.datasource.DataSource
-import androidx.media3.exoplayer.DefaultLoadControl
-import androidx.media3.exoplayer.DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER
-import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
+import androidx.media3.extractor.DefaultExtractorsFactory
 import androidx.media3.extractor.Extractor
 import androidx.media3.extractor.ExtractorsFactory
 import androidx.media3.extractor.text.SubtitleParser
+import androidx.media3.extractor.ts.DefaultTsPayloadReaderFactory
 import androidx.media3.extractor.ts.TsExtractor
+import androidx.media3.extractor.ts.TsExtractor.FLAG_EMIT_RAW_SUBTITLE_DATA
+import androidx.media3.extractor.ts.TsExtractor.MODE_MULTI_PMT
+import androidx.media3.extractor.ts.TsPayloadReader
 import org.mz.mzdkplayer.tool.FtpDataSourceFactory
 
 import org.mz.mzdkplayer.tool.NFSDataSourceFactory
-
-
+import org.mz.mzdkplayer.tool.SmbDataSourceFactory
 import org.mz.mzdkplayer.tool.WebDavDataSourceFactory
 import org.mz.mzdkplayer.ui.screen.vm.SettingsViewModel
+import org.mz.mzdkplayer.ui.screen.vm.VideoPlayerViewModel
 
 @OptIn(UnstableApi::class)
 @SuppressLint("SuspiciousIndentation")
@@ -78,8 +75,8 @@ fun BuilderMzPlayer(
 
         // SRT 字幕的 MIME 类型
         val mimeTypeSRT = "application/x-subrip"
-        val mimeTypeASS = "text/x-ssa"          // .ass
-        val mimeTypeVTT = "text/vtt"            // .vtt
+        // val mimeTypeASS = "text/x-ssa"          // .ass
+        // val mimeTypeVTT = "text/vtt"            // .vtt
 
 
         exoPlayer.trackSelectionParameters = trackSelectionParameters
@@ -262,15 +259,49 @@ fun rememberPlayer(
             .setTunnelingEnabled(settingsState.enableTunneling) // ⚠️ 核心：根据设置开启/关闭隧道模式
             .build()
         trackSelector.setParameters(parameters)
+        val isM2ts = mediaUri.endsWith(".m2ts", ignoreCase = true) ||
+                mediaUri.endsWith(".mts", ignoreCase = true)
+        val mediaSource = if (isM2ts) {
+            val customExtractorsFactory =
+                DefaultExtractorsFactory().setTsExtractorMode(MODE_MULTI_PMT)
+                    .setTsExtractorTimestampSearchBytes(1024)
+            val forcedTsExtractorFactory = ExtractorsFactory {
+                arrayOf<Extractor>(
+                    TsExtractor(
+                        TsExtractor.MODE_SINGLE_PMT,
+                        FLAG_EMIT_RAW_SUBTITLE_DATA,
+                        SubtitleParser.Factory.UNSUPPORTED,
+                        TimestampAdjuster(0),
+                        DefaultTsPayloadReaderFactory(0),
+                        1024
+                    )
+                    //M2tsExtractor()
+                )
+
+            }
+
+            DefaultMediaSourceFactory(
+                selectedDataSourceFactory(
+                    mediaUri,
+                    dataSourceType,
+                    context
+                ),
+                forcedTsExtractorFactory
+            )
+
+        } else {
+            DefaultMediaSourceFactory(
+                selectedDataSourceFactory(
+                    mediaUri,
+                    dataSourceType,
+                    context
+                )
+            )
+        }
+
         ExoPlayer.Builder(context).setSeekForwardIncrementMs(30000).setSeekBackIncrementMs(30000)
             .setTrackSelector(trackSelector).setMediaSourceFactory(
-                DefaultMediaSourceFactory(
-                    selectedDataSourceFactory(
-                        mediaUri,
-                        dataSourceType,
-                        context
-                    )
-                )
+                mediaSource
             )
             .setRenderersFactory(renderersFactory).build().apply {
                 playWhenReady = true
@@ -343,7 +374,8 @@ fun findExternalSubtitles(mediaUri: String): List<MediaItem.SubtitleConfiguratio
             // 你可能需要根据字幕文件的语言约定来设置语言，这里暂时留空或设置为默认
             // 例如：如果文件名是 "video.zh.srt"，则可以尝试解析 "zh"
             // 为了简单起见，我们暂时设置一个默认的 SelectionFlag
-            .setSelectionFlags(C.SELECTION_FLAG_DEFAULT).setLabel("[外部加载]$fileName").setLanguage("zh")
+            .setSelectionFlags(C.SELECTION_FLAG_DEFAULT).setLabel("[外部加载]$fileName")
+            .setLanguage("zh")
             .build()
 
         subtitles.add(subtitleConfig)

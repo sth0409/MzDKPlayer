@@ -522,6 +522,7 @@ fun VideoPlayerScreen(
             )
         }
 
+
         // AndroidView 包裹 PlayerView，用于显示视频 - 这是关键，确保底层渲染不受干扰
         AndroidView(
             factory = { context ->

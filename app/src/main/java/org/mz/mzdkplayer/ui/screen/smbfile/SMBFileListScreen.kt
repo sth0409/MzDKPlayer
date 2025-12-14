@@ -292,45 +292,42 @@ fun SMBFileListScreen(
                                                     // 处理文件点击
                                                     val fileExtension =
                                                         Tools.extractFileExtension(file.name)
-
+                                                    val encodedUri = try {
+                                                        URLEncoder.encode(
+                                                            "smb://${file.username}:${file.password}@${file.server}/${file.share}${file.fullPath}",
+                                                            "UTF-8"
+                                                        )
+                                                    } catch (e: Exception) {
+                                                        Log.e(
+                                                            "SMBFileListScreen",
+                                                            "音频URI编码失败: $e"
+                                                        )
+                                                        Toast.makeText(
+                                                            context,
+                                                            "音频路径编码失败",
+                                                            Toast.LENGTH_SHORT
+                                                        ).show()
+                                                        return@ListItem
+                                                    }
+                                                    val encodedFileName = try {
+                                                        URLEncoder.encode(
+                                                            file.name,
+                                                            "UTF-8"
+                                                        )
+                                                    } catch (e: Exception) {
+                                                        Log.e(
+                                                            "SMBFileListScreen",
+                                                            "文件名编码失败: $e"
+                                                        )
+                                                        Toast.makeText(
+                                                            context,
+                                                            "文件名编码失败",
+                                                            Toast.LENGTH_SHORT
+                                                        ).show()
+                                                        return@ListItem
+                                                    }
                                                     when {
                                                         Tools.containsVideoFormat(fileExtension) -> {
-                                                            val encodedUri = try {
-                                                                URLEncoder.encode(
-                                                                    "smb://${file.username}:${file.password}@${file.server}/${file.share}${file.fullPath}",
-                                                                    "UTF-8"
-                                                                )
-                                                            } catch (e: Exception) {
-                                                                Log.e(
-                                                                    "SMBFileListScreen",
-                                                                    "视频URI编码失败: $e"
-                                                                )
-                                                                Toast.makeText(
-                                                                    context,
-                                                                    "视频路径编码失败",
-                                                                    Toast.LENGTH_SHORT
-                                                                ).show()
-                                                                return@ListItem
-
-                                                            }
-                                                            val encodedFileName = try {
-                                                                URLEncoder.encode(
-                                                                    file.name,
-                                                                    "UTF-8"
-                                                                )
-                                                            } catch (e: Exception) {
-                                                                Log.e(
-                                                                    "SMBFileListScreen",
-                                                                    "文件名编码失败: $e"
-                                                                )
-                                                                Toast.makeText(
-                                                                    context,
-                                                                    "文件名编码失败",
-                                                                    Toast.LENGTH_SHORT
-                                                                ).show()
-                                                                return@ListItem
-
-                                                            }
                                                             Log.d(
                                                                 "SMBFileListScreen",
                                                                 "connectionName:$connectionName"
@@ -405,45 +402,12 @@ fun SMBFileListScreen(
                                                                 "audio_playlist",
                                                                 audioItems
                                                             )
-
-                                                            val encodedUri = try {
-                                                                URLEncoder.encode(
-                                                                    "smb://${file.username}:${file.password}@${file.server}/${file.share}${file.fullPath}",
-                                                                    "UTF-8"
-                                                                )
-                                                            } catch (e: Exception) {
-                                                                Log.e(
-                                                                    "SMBFileListScreen",
-                                                                    "音频URI编码失败: $e"
-                                                                )
-                                                                Toast.makeText(
-                                                                    context,
-                                                                    "音频路径编码失败",
-                                                                    Toast.LENGTH_SHORT
-                                                                ).show()
-                                                                return@ListItem
-                                                            }
-
-                                                            val encodedFileName = try {
-                                                                URLEncoder.encode(
-                                                                    file.name,
-                                                                    "UTF-8"
-                                                                )
-                                                            } catch (e: Exception) {
-                                                                Log.e(
-                                                                    "SMBFileListScreen",
-                                                                    "文件名编码失败: $e"
-                                                                )
-                                                                Toast.makeText(
-                                                                    context,
-                                                                    "文件名编码失败",
-                                                                    Toast.LENGTH_SHORT
-                                                                ).show()
-                                                                return@ListItem
-                                                            }
-
                                                             //  传递当前音频项在播放列表中的索引
                                                             navController.navigate("AudioPlayer/$encodedUri/SMB/$encodedFileName/${connectionName}/$currentAudioIndex")
+                                                        }
+                                                        // 图片
+                                                        Tools.containsImageFileExtension(fileExtension) -> {
+                                                            navController.navigate("PicViewer/$encodedUri/SMB/$encodedFileName/${connectionName}")
                                                         }
 
                                                         else -> {
@@ -483,26 +447,16 @@ fun SMBFileListScreen(
                                                 focusedScale = 1.01f
                                             ),
                                             leadingContent = {
+                                                val fileExtension = Tools.extractFileExtension(file.name)
                                                 Icon(
                                                     painter = when {
                                                         file.isDirectory -> painterResource(R.drawable.baseline_folder_24)
-                                                        Tools.containsVideoFormat(
-                                                            Tools.extractFileExtension(
-                                                                file.name
-                                                            )
-                                                        ) ->
-                                                            painterResource(R.drawable.moviefileicon)
-
-                                                        Tools.containsAudioFormat(
-                                                            Tools.extractFileExtension(
-                                                                file.name
-                                                            )
-                                                        ) ->
-                                                            painterResource(R.drawable.baseline_music_note_24)
-
+                                                        Tools.containsVideoFormat(fileExtension) -> painterResource(R.drawable.moviefileicon)
+                                                        Tools.containsAudioFormat(fileExtension) -> painterResource(R.drawable.baseline_music_note_24)
+                                                        Tools.containsImageFileExtension(fileExtension) -> painterResource(R.drawable.image24dp)
                                                         else -> painterResource(R.drawable.baseline_insert_drive_file_24)
                                                     },
-                                                    contentDescription = null
+                                                    contentDescription = null,
                                                 )
                                             },
                                             headlineContent = {

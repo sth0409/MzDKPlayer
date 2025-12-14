@@ -53,7 +53,8 @@ fun MyDialogFinalFix() {
                 properties = DialogProperties(
                     usePlatformDefaultWidth = false
                 )
-            ) {
+            )
+            {
                 // 记录是否允许点击
                 var allowClick by remember { mutableStateOf(false) }
                 Log.d("allowClick",allowClick.toString())

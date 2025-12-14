@@ -179,10 +179,12 @@ fun LocalFileScreen(path: String?, navController: NavHostController) {
                                                                 file.name,
                                                                 "UTF-8"
                                                             )
-                                                        }/${ URLEncoder.encode(
-                                                            "本地文件",
-                                                            "UTF-8"
-                                                        )}"
+                                                        }/${
+                                                            URLEncoder.encode(
+                                                                "本地文件",
+                                                                "UTF-8"
+                                                            )
+                                                        }"
                                                     )
                                                 } else if (Tools.containsAudioFormat(
                                                         Tools.extractFileExtension(file.name)
@@ -231,10 +233,34 @@ fun LocalFileScreen(path: String?, navController: NavHostController) {
                                                                 file.name,
                                                                 "UTF-8"
                                                             )
-                                                        }/${ URLEncoder.encode(
-                                                            "本地文件",
-                                                            "UTF-8"
-                                                        )}/$currentAudioIndex"
+                                                        }/${
+                                                            URLEncoder.encode(
+                                                                "本地文件",
+                                                                "UTF-8"
+                                                            )
+                                                        }/$currentAudioIndex"
+                                                    )
+                                                } else if (Tools.containsImageFileExtension(
+                                                        Tools.extractFileExtension(file.name)
+                                                    )
+                                                ) {
+                                                    navController.navigate(
+                                                        "PicViewer/${
+                                                            URLEncoder.encode(
+                                                                "file://${file.path}",
+                                                                "UTF-8"
+                                                            )
+                                                        }/LOCAL/${
+                                                            URLEncoder.encode(
+                                                                file.name,
+                                                                "UTF-8"
+                                                            )
+                                                        }/${
+                                                            URLEncoder.encode(
+                                                                "本地文件",
+                                                                "UTF-8"
+                                                            )
+                                                        }"
                                                     )
                                                 } else {
                                                     Toast.makeText(
@@ -244,6 +270,8 @@ fun LocalFileScreen(path: String?, navController: NavHostController) {
                                                     ).show()
                                                 }
                                             }
+
+
                                         },
                                         colors = MyFileListItemColor(),
                                         modifier = Modifier
@@ -260,21 +288,14 @@ fun LocalFileScreen(path: String?, navController: NavHostController) {
                                             focusedScale = 1.02f
                                         ),
                                         leadingContent = {
+                                            val fileExtension = Tools.extractFileExtension(file.name)
                                             Icon(
-                                                painter = if (file.isDirectory) {
-                                                    painterResource(R.drawable.baseline_folder_24)
-                                                } else if (Tools.containsVideoFormat(
-                                                        Tools.extractFileExtension(file.name)
-                                                    )
-                                                ) {
-                                                    painterResource(R.drawable.moviefileicon)
-                                                } else if (Tools.containsAudioFormat(
-                                                        Tools.extractFileExtension(file.name)
-                                                    )
-                                                ) {
-                                                    painterResource(R.drawable.baseline_music_note_24)
-                                                } else {
-                                                    painterResource(R.drawable.baseline_insert_drive_file_24)
+                                                painter = when {
+                                                    file.isDirectory -> painterResource(R.drawable.baseline_folder_24)
+                                                    Tools.containsVideoFormat(fileExtension) -> painterResource(R.drawable.moviefileicon)
+                                                    Tools.containsAudioFormat(fileExtension) -> painterResource(R.drawable.baseline_music_note_24)
+                                                    Tools.containsImageFileExtension(fileExtension) -> painterResource(R.drawable.image24dp)
+                                                    else -> painterResource(R.drawable.baseline_insert_drive_file_24)
                                                 },
                                                 contentDescription = null,
                                             )

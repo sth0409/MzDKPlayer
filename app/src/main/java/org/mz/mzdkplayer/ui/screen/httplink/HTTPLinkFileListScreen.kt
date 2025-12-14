@@ -60,7 +60,7 @@ import java.net.URLEncoder
 fun HTTPLinkFileListScreen(
     path: String?,
     navController: NavHostController,
-    connectionName: String=""
+    connectionName: String = ""
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -232,10 +232,12 @@ fun HTTPLinkFileListScreen(
                                                                             resource.name,
                                                                             "UTF-8"
                                                                         )
-                                                                    }/${ URLEncoder.encode(
-                                                                        connectionName,
-                                                                        "UTF-8"
-                                                                    )}"
+                                                                    }/${
+                                                                        URLEncoder.encode(
+                                                                            connectionName,
+                                                                            "UTF-8"
+                                                                        )
+                                                                    }"
                                                                 )
                                                             }
 
@@ -295,12 +297,32 @@ fun HTTPLinkFileListScreen(
                                                                             resource.name,
                                                                             "UTF-8"
                                                                         )
-                                                                    }/${ URLEncoder.encode(
-                                                                        connectionName,
-                                                                        "UTF-8"
-                                                                    )}/$currentAudioIndex"
+                                                                    }/${
+                                                                        URLEncoder.encode(
+                                                                            connectionName,
+                                                                            "UTF-8"
+                                                                        )
+                                                                    }/$currentAudioIndex"
                                                                 )
                                                                 //navController.navigate("AudioPlayer/$encodedUri/SMB/$encodedFileName")
+                                                            }
+
+                                                            Tools.containsImageFileExtension(
+                                                                fileExtension
+                                                            ) -> {
+                                                                navController.navigate(
+                                                                    "PicViewer/$encodedFileUrl/HTTP/${
+                                                                        URLEncoder.encode(
+                                                                            resource.name,
+                                                                            "UTF-8"
+                                                                        )
+                                                                    }/${
+                                                                        URLEncoder.encode(
+                                                                            connectionName,
+                                                                            "UTF-8"
+                                                                        )
+                                                                    }"
+                                                                )
                                                             }
 
                                                             else -> {
@@ -333,27 +355,17 @@ fun HTTPLinkFileListScreen(
                                                 focusedScale = 1.01f
                                             ),
                                             leadingContent = {
+                                                val fileExtension = Tools.extractFileExtension(resourceName)
                                                 Icon(
-                                                    painter = if (resource.isDirectory) {
-                                                        painterResource(R.drawable.baseline_folder_24)
-                                                    } else if (Tools.containsVideoFormat(
-                                                            Tools.extractFileExtension(resource.name)
-                                                        )
-                                                    ) {
-
-                                                        painterResource(R.drawable.moviefileicon)
-                                                    } else if (Tools.containsAudioFormat(
-                                                            Tools.extractFileExtension(resource.name)
-                                                        )
-                                                    ) {
-
-                                                        painterResource(R.drawable.baseline_music_note_24)
-                                                    } else {
-                                                        painterResource(R.drawable.baseline_insert_drive_file_24)
+                                                    painter = when {
+                                                        resource.isDirectory -> painterResource(R.drawable.baseline_folder_24)
+                                                        Tools.containsVideoFormat(fileExtension) -> painterResource(R.drawable.moviefileicon)
+                                                        Tools.containsAudioFormat(fileExtension) -> painterResource(R.drawable.baseline_music_note_24)
+                                                        Tools.containsImageFileExtension(fileExtension) -> painterResource(R.drawable.image24dp)
+                                                        else -> painterResource(R.drawable.baseline_insert_drive_file_24)
                                                     },
                                                     contentDescription = null,
-
-                                                    )
+                                                )
                                             },
                                             headlineContent = {
                                                 // 显示完整的文件名
@@ -367,7 +379,8 @@ fun HTTPLinkFileListScreen(
                                             // supportingContent = { Text(resource.rawListing ?: "") } // 可以显示原始信息
                                         )
                                     }
-                                }}
+                                }
+                            }
 
                         }
                         Column(

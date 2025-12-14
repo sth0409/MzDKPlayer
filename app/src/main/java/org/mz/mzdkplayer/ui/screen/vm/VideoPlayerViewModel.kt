@@ -42,9 +42,9 @@ class VideoPlayerViewModel:ViewModel() {
     var selectedStIndex by mutableIntStateOf(0)
     var onTracksChangedState by  mutableIntStateOf(0)
 
-    var isSubtitleViewVis by mutableIntStateOf(View.VISIBLE)
+    var isSubtitleViewVis by mutableIntStateOf(View.GONE)
 
-    var isCusSubtitleViewVis by mutableStateOf(false)
+    var isCusSubtitleViewVis by mutableStateOf(true)
 
     var isSubtitlePanelVis by mutableStateOf("S")
 

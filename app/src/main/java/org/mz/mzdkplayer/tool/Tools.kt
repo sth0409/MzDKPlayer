@@ -129,6 +129,25 @@ object Tools {
         }
     }
 
+    fun containsImageFileExtension(input: String): Boolean {
+        // Exoplayer 支持的图片格式的常见扩展名列表
+        val supportedExtensions = listOf(
+            "bmp",  // BMP
+            "jpg",  // JPEG
+            "jpeg", // JPEG
+            "png",  // PNG
+            "webp", // WebP
+            "heif", // HEIF/HEIC
+            "heic", // HEIF/HEIC
+            "avif"  // AVIF (基准，需 Android 14+)
+        )
+
+        // 1. 将输入转为小写，并去掉可能的首尾空格
+        val lowerInput = input.trim().lowercase()
+
+        // 2. 检查这个字符串是否是支持的扩展名之一
+        return supportedExtensions.contains(lowerInput)
+    }
     /**
      * 根据音频轨道的 Format 信息推断具体的音频格式类型
      * @param format 音频轨道的 Format 对象

@@ -84,23 +84,23 @@ fun SettingsScreen(mainNavController: NavHostController,settingsVM: SettingsView
             lastClickTime = currentTime
         }
     }
-    Box(modifier = Modifier.fillMaxSize()) {
-        // --- 动态背景 (彩蛋内容) ---
-        when (currentEggState) {
-            EggState.SOLAR_SYSTEM -> {
-                // 太阳系作为背景
-                SolarSystem(Modifier.matchParentSize())
-            }
-            EggState.BLACK_HOLE -> {
-                // 黑洞作为背景
-                BlackHoleSimulationScreen(Modifier.matchParentSize())
-            }
-            else -> {
-                // 默认背景 (可选)
-                Spacer(Modifier.matchParentSize().background(MaterialTheme.colorScheme.background))
-            }
-        }
-        }
+//    Box(modifier = Modifier.fillMaxSize()) {
+//        // --- 动态背景 (彩蛋内容) ---
+//        when (currentEggState) {
+//            EggState.SOLAR_SYSTEM -> {
+//                // 太阳系作为背景
+//                SolarSystem(Modifier.matchParentSize())
+//            }
+//            EggState.BLACK_HOLE -> {
+//                // 黑洞作为背景
+//                BlackHoleSimulationScreen(Modifier.matchParentSize())
+//            }
+//            else -> {
+//                // 默认背景 (可选)
+//                Spacer(Modifier.matchParentSize().background(MaterialTheme.colorScheme.background))
+//            }
+//        }
+//        }
     // 使用 Row 实现左右两栏布局
     Row(
         modifier = Modifier

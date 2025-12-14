@@ -42,7 +42,7 @@ object SmbUtils {
      * 示例 URI: smb://user:pass@host/share/path/to/file.xml
      */
     @Throws(IOException::class)
-    suspend fun openSmbFileInputStream(smbUri: Uri,sampleMimeType: String): InputStream {
+    suspend fun openSmbFileInputStream(smbUri: Uri, sampleMimeType: String): InputStream {
         return withContext(Dispatchers.IO) {
             val host = smbUri.host ?: throw IOException("Invalid SMB URI: no host")
             val path = smbUri.path ?: throw IOException("Invalid SMB URI: no path")
@@ -81,13 +81,15 @@ object SmbUtils {
                     SMB2CreateDisposition.FILE_OPEN,
                     null
                 )
-                if (sampleMimeType.contains("audio")&&sampleMimeType.contains("raw")){
+                if (sampleMimeType.contains("audio") && sampleMimeType.contains("raw")) {
                     return@withContext file.inputStream
-                }else if (sampleMimeType.contains("video")){
+                } else if (sampleMimeType.contains("video")) {
                     return@withContext file.inputStream
-                }else{
+                } else if (sampleMimeType.contains("pics")) {
+                    return@withContext file.inputStream
+                } else {
                     val originalInputStream = file.inputStream
-                    return@withContext  LimitedInputStream(originalInputStream, 5 * 1024 * 1024)
+                    return@withContext LimitedInputStream(originalInputStream, 5 * 1024 * 1024)
                 }
 
             } catch (e: Exception) {
@@ -162,8 +164,8 @@ object SmbUtils {
      * 调用者负责在使用完毕后关闭返回的 InputStream。
      */
     @Throws(IOException::class)
-    suspend fun openWebDavFileInputStream(webDavUri: Uri,sampleMimeType: String): InputStream {
-         return withContext(Dispatchers.IO) {
+    suspend fun openWebDavFileInputStream(webDavUri: Uri, sampleMimeType: String): InputStream {
+        return withContext(Dispatchers.IO) {
             // 1. 解析 URI
             val scheme = webDavUri.scheme ?: throw IOException("Invalid WebDAV URI: no scheme")
             if (scheme != "http" && scheme != "https") {
@@ -191,9 +193,9 @@ object SmbUtils {
 
             // 3. 构建基础 URL (不包含文件路径)
             // val baseUrl = "$scheme://$host:$port"
-              val webDavClient by  lazy{
-                 WebDavHttpClient.restrictedTrustOkHttpClient
-             }
+            val webDavClient by lazy {
+                WebDavHttpClient.restrictedTrustOkHttpClient
+            }
 
             // 5. 创建临时 Sardine 实例
             val tempSardine: Sardine = OkHttpSardine(webDavClient)
@@ -216,24 +218,28 @@ object SmbUtils {
                 // 如果未来 Sardine 实现有变化，可能需要调整。
 
                 // 返回 InputStream 给调用者，调用者负责关闭它。
-                if (sampleMimeType.contains("audio")&&sampleMimeType.contains("raw")){
+                if (sampleMimeType.contains("audio") && sampleMimeType.contains("raw")) {
                     return@withContext inputStream
-                }else if (sampleMimeType.contains("video")){
+                } else if (sampleMimeType.contains("video")) {
                     return@withContext inputStream
-                }else{
-                    return@withContext  LimitedInputStream(inputStream, 5 * 1024 * 1024)
+                }else if (sampleMimeType.contains("pics")) {
+                    return@withContext inputStream
+                } else {
+                    return@withContext LimitedInputStream(inputStream, 5 * 1024 * 1024)
                 }
 
             } catch (e: Exception) {
                 // 捕获 Sardine 相关异常（如网络错误、认证失败、文件不存在等）
                 // 并将其包装为 IOException 抛出
-                throw IOException("Failed to open WebDAV file input stream for URL: $fullFileUrl", e)
+                throw IOException(
+                    "Failed to open WebDAV file input stream for URL: $fullFileUrl",
+                    e
+                )
             }
             // 注意：tempSardine 实例在此处超出作用域，会被垃圾回收。
             // 它的 OkHttpClient 也会被垃圾回收，其连接池中的空闲连接最终也会被清理。
         }
     }
-
 
 
     /**
@@ -283,13 +289,16 @@ object SmbUtils {
                 }
 
                 // 根据 MIME 类型决定是否限制流大小
-                val wrappedInputStream = if (sampleMimeType.contains("audio") && sampleMimeType.contains("raw")) {
-                    inputStream
-                } else if (sampleMimeType.contains("video")) {
-                    inputStream
-                } else {
-                    LimitedInputStream(inputStream, 5 * 1024 * 1024) // 限制为5MB
-                }
+                val wrappedInputStream =
+                    if (sampleMimeType.contains("audio") && sampleMimeType.contains("raw")) {
+                        inputStream
+                    } else if (sampleMimeType.contains("video")) {
+                        inputStream
+                    }else if (sampleMimeType.contains("pics")) {
+                        return@withContext inputStream
+                    } else {
+                        LimitedInputStream(inputStream, 5 * 1024 * 1024) // 限制为5MB
+                    }
 
                 // 返回一个包装的 InputStream，在关闭时也处理 FTP 连接
                 object : InputStream() {
@@ -337,7 +346,10 @@ object SmbUtils {
                                 completeOk = ftpClient.completePendingCommand()
                                 if (!completeOk) {
                                     // 可以记录警告日志，但不一定抛异常
-                                    Log.w("FTP", "completePendingCommand failed: ${ftpClient.replyString}")
+                                    Log.w(
+                                        "FTP",
+                                        "completePendingCommand failed: ${ftpClient.replyString}"
+                                    )
                                 }
                             } catch (e: Exception) {
                                 completeCommandException = e
@@ -363,10 +375,17 @@ object SmbUtils {
 
                             // 如果关闭输入流或完成命令时发生严重错误，则抛出
                             if (inputStreamException != null) {
-                                throw IOException("Error closing FTP input stream", inputStreamException)
+                                throw IOException(
+                                    "Error closing FTP input stream",
+                                    inputStreamException
+                                )
                             }
                             if (completeCommandException != null) {
-                                Log.w("FTP", "FTP command completion error (ignoring if data read OK)", completeCommandException)
+                                Log.w(
+                                    "FTP",
+                                    "FTP command completion error (ignoring if data read OK)",
+                                    completeCommandException
+                                )
                             }
 
                         } finally {
@@ -401,9 +420,6 @@ object SmbUtils {
     }
 
 
-
-
-
     /**
      * 根据完整的 NFS URI 打开文件并返回 InputStream
      * 示例 URI: nfs://host:/exported_path:path_within_export
@@ -411,7 +427,7 @@ object SmbUtils {
      * 注意: URI 格式解析依赖于 NFSDataSource 中的逻辑
      */
     @Throws(IOException::class)
-    suspend fun openNfsFileInputStream(nfsUri: Uri,sampleMimeType: String): InputStream {
+    suspend fun openNfsFileInputStream(nfsUri: Uri, sampleMimeType: String): InputStream {
         return withContext(Dispatchers.IO) {
             // --- 解析 NFS URI ---
             if (nfsUri.scheme?.lowercase() != "nfs") {
@@ -441,12 +457,18 @@ object SmbUtils {
             // path_within_export 是冒号 ':' 之后的部分
             val pathWithinExport = path.substring(colonIndexInPath + 1)
             if (pathWithinExport.isEmpty()) {
-                Log.w("openNfsFileInputStream", "Warning: NFS URI path: '$path'. path_within_export is empty. Using root path '/'.")
+                Log.w(
+                    "openNfsFileInputStream",
+                    "Warning: NFS URI path: '$path'. path_within_export is empty. Using root path '/'."
+                )
                 // 可以选择抛出异常或使用根路径，这里选择使用根路径
             }
             // --- URI 解析逻辑修正结束 ---
 
-            Log.d("openNfsFileInputStream", "Connecting to NFS server: $serverAddress, export: $exportedPath")
+            Log.d(
+                "openNfsFileInputStream",
+                "Connecting to NFS server: $serverAddress, export: $exportedPath"
+            )
             Log.d("openNfsFileInputStream", "Opening file path: $pathWithinExport")
 
             // 准备认证信息 (使用默认 UID/GID 0)
@@ -458,7 +480,7 @@ object SmbUtils {
             try {
                 // 创建 NFS 客户端并连接/挂载
                 nfsClient = Nfs3(serverAddress, exportedPath, credential, 3)
-               
+
 
                 // 构造 NFS 文件路径 (相对于挂载点)
                 val nfsFilePath = if (pathWithinExport.startsWith("/")) {
@@ -548,12 +570,14 @@ object SmbUtils {
                 }
 
                 // 返回 InputStream 给调用者，调用者负责关闭它。
-                if (sampleMimeType.contains("audio")&&sampleMimeType.contains("raw")){
+                if (sampleMimeType.contains("audio") && sampleMimeType.contains("raw")) {
                     return@withContext inputStream
-                }else if (sampleMimeType.contains("video")){
+                } else if (sampleMimeType.contains("video")) {
                     return@withContext inputStream
-                }else{
-                    return@withContext  LimitedInputStream(inputStream, 5 * 1024 * 1024)
+                }else if (sampleMimeType.contains("pics")) {
+                    return@withContext inputStream
+                } else {
+                    return@withContext LimitedInputStream(inputStream, 5 * 1024 * 1024)
                 }
 
             } catch (e: Exception) {
@@ -562,12 +586,20 @@ object SmbUtils {
                     // 如果 Nfs3File 有 close 方法，尝试关闭它
                     // nfsFile?.close() // Uncomment if Nfs3File has a close method
                 } catch (closeException: Exception) {
-                    Log.w("openNfsFileInputStream", "Error closing NFS file during error handling", closeException)
+                    Log.w(
+                        "openNfsFileInputStream",
+                        "Error closing NFS file during error handling",
+                        closeException
+                    )
                 }
                 try {
                     // Nfs3 客户端通常没有显式关闭方法，置为 null 即可
                 } catch (closeException: Exception) {
-                    Log.w("openNfsFileInputStream", "Error closing NFS client during error handling", closeException)
+                    Log.w(
+                        "openNfsFileInputStream",
+                        "Error closing NFS client during error handling",
+                        closeException
+                    )
                 }
                 throw IOException("Failed to open NFS file: $nfsUri", e)
             }
@@ -575,12 +607,11 @@ object SmbUtils {
     }
 
 
-
     /**
      * 根据完整的 HTTP Link URL 打开 XML 弹幕文件并返回 InputStream
      * 示例 URL: http://host:port/path/to/danmaku.xml
      * @param xmlUrl HTTP Link 上 XML 文件的完整 URL
-     
+
      * @return 用于读取 XML 文件的 InputStream
      * @throws IOException 如果连接失败或无法打开流
      */
@@ -596,22 +627,23 @@ object SmbUtils {
                 throw IOException("HTTP error code: ${response.code}, message: ${response.message}")
             }
 
-            val responseBody = response.body
-            if (responseBody == null) {
-                throw IOException("Response body is null for URL: $xmlUrl")
-            }
+            val responseBody =
+                response.body ?: throw IOException("Response body is null for URL: $xmlUrl")
 
             // 获取输入流
             val inputStream = responseBody.byteStream()
 
             // 根据 MIME 类型决定是否限制流大小
-            val wrappedInputStream = if (sampleMimeType.contains("audio") && sampleMimeType.contains("raw")) {
-                inputStream
-            } else if (sampleMimeType.contains("video")) {
-                inputStream
-            } else {
-                LimitedInputStream(inputStream, 5 * 1024 * 1024) // 限制为5MB
-            }
+            val wrappedInputStream =
+                if (sampleMimeType.contains("audio") && sampleMimeType.contains("raw")) {
+                    inputStream
+                } else if (sampleMimeType.contains("video")) {
+                    inputStream
+                } else if (sampleMimeType.contains("pics")) {
+                    return@withContext inputStream
+                }else {
+                    LimitedInputStream(inputStream, 5 * 1024 * 1024) // 限制为5MB
+                }
 
             // 返回一个包装的 InputStream，在关闭时也处理 HTTP 响应
             object : InputStream() {
@@ -656,10 +688,6 @@ object SmbUtils {
     }
 
 
-
-
-
-
     /**
      * 根据视频的 video URI，构造同名弹幕 XML 文件的 SMB URI
      * 例如: smb://host/share/movie.mp4 → smb://host/share/movie.xml
@@ -671,9 +699,6 @@ object SmbUtils {
 
         return videoSmbUri.buildUpon().path(danmakuPath).build()
     }
-
-
-
 
 
     /**
@@ -689,7 +714,8 @@ object SmbUtils {
             throw IllegalArgumentException("Invalid NFS video URI scheme: ${videoNfsUri.scheme}")
         }
 
-        val originalPath = videoNfsUri.path ?: throw IllegalArgumentException("Invalid NFS video URI: no path")
+        val originalPath =
+            videoNfsUri.path ?: throw IllegalArgumentException("Invalid NFS video URI: no path")
 
         // --- 修正 URI 解析逻辑 (与 openNfsFileInputStream 和 NFSDataSource 保持一致) ---
         if (!originalPath.startsWith("/")) {
@@ -716,7 +742,7 @@ object SmbUtils {
         // 从 path_within_export 中提取基础路径和文件名
         val lastSlashIndex = pathWithinExport.lastIndexOf('/')
         val directoryPath = if (lastSlashIndex != -1) {
-            pathWithinExport.substring(0, lastSlashIndex + 1) // 包含最后的 '/'
+            pathWithinExport.take(lastSlashIndex + 1) // 包含最后的 '/'
         } else {
             "" // 文件在导出根目录下
         }
@@ -743,7 +769,8 @@ object SmbUtils {
         val danmakuNfsPath = "/$exportedPath:$danmakuPathWithinExport"
 
         // 获取 host
-        val host = videoNfsUri.host ?: throw IllegalArgumentException("Invalid NFS video URI: no host")
+        val host =
+            videoNfsUri.host ?: throw IllegalArgumentException("Invalid NFS video URI: no host")
 
         // 手动构建最终的 URI 字符串，避免 Uri.Builder 对 ':' 进行编码
         val danmakuUriString = "nfs://$host:$danmakuNfsPath"
@@ -752,11 +779,41 @@ object SmbUtils {
         return danmakuUriString.toUri()
     }
 
+    /**
+     * 根据本地文件 URI 打开文件并返回 InputStream
+     * 示例 URI: file:///path/to/file.png
+     * @param localUri 本地文件的 Uri
+     */
+    @Throws(IOException::class)
+     fun openLocalFileInputStream(localUri: Uri): InputStream {
+
+        val context =
+        // ⚠️ 警告：这里需要一个 Context 来访问 ContentResolver 或 File API
+        // 假设你的应用中有一个获取全局 Context 的方法，或需要将 Context 作为参数传入
+        // 由于 SmbUtils 是一个 Object，我暂时使用一个占位符，你需要在实际代码中处理 Context 依赖
+        // 这里我使用 Android 标准库的 File API 作为示例（如果 Uri 是 file:// 模式）
+            // 更健壮的方法是使用 ContentResolver
+            try {
+                when (localUri.scheme) {
+                    "file" -> {
+                        java.io.File(localUri.path!!).inputStream()
+                    }
+
+                    "content" -> {
+                        // 假设调用者会传入一个 Context
+                        // 示例：MyApplication.getAppContext().contentResolver.openInputStream(localUri)!!
+                        throw UnsupportedOperationException("Content URI not supported in this simplified SmbUtils method.")
+                    }
+
+                    else -> {
+                        throw IllegalArgumentException("Unsupported local Uri scheme: ${localUri.scheme}")
+                    }
+                }
+            } catch (e: Exception) {
+                throw IOException("Failed to open local file: $localUri", e)
+            }
 
 
-
-
-
-
-
+        return context
+    }
 }

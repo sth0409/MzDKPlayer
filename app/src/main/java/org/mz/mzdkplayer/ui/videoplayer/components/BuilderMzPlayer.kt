@@ -15,6 +15,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.Log
 import androidx.media3.common.util.TimestampAdjuster
@@ -70,7 +71,8 @@ fun BuilderMzPlayer(
         android.util.Log.d("preferredTextLanguage", preferredTextLanguage.toString())
         val trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
             .setPreferredTextLanguage(preferredTextLanguage)
-            .setPreferredAudioLanguage(preferredAudioLanguage) // 将 "zh" 替换为你需要的默认字幕语言代码，例如 "en" 表示英语
+            .setPreferredAudioLanguage(preferredAudioLanguage)
+            .setSelectUndeterminedTextLanguage(true)//// 关键：允许选中语言为 "und" 的字幕 将 "zh" 替换为你需要的默认字幕语言代码，例如 "en" 表示英语
             .build()
 
         // SRT 字幕的 MIME 类型
@@ -121,11 +123,11 @@ fun BuilderMzPlayer(
                 videoPlayerViewModel.mutableSetOfVideoTrackGroups.clear()
                 videoPlayerViewModel.mutableSetOfTextTrackGroups.clear()
                 Log.e("enableTunneling", exoPlayer.isTunnelingEnabled.toString())
-                // 检测是否有SRT字幕轨道被选中
-                var hasSrtTrackSelected = false
-                var hasPGSTrackSelected = false
-                var hasASSTrackSelected = false
-                var hasVTTTrackSelected = false
+//                // 检测是否有SRT字幕轨道被选中
+//                var hasSrtTrackSelected = false
+//                var hasPGSTrackSelected = false
+//                var hasASSTrackSelected = false
+//                var hasVTTTrackSelected = false
                 for (trackGroup in trackGroups) {
                     // Group level information.
                     val trackType = trackGroup.type
@@ -142,53 +144,63 @@ fun BuilderMzPlayer(
                     // 字幕轨
                     if (trackType == C.TRACK_TYPE_TEXT) {
                         videoPlayerViewModel.mutableSetOfTextTrackGroups.add(trackGroup)
-
-                        if (trackGroup.isSelected) {
-                            // 获取被选中轨道的格式 (循环轨道组)
-                            for (i in 0 until trackGroup.length) {
-                                if (trackGroup.isTrackSelected(i)) {
-                                    val format = trackGroup.getTrackFormat(i)
-                                    // 检查是否是SRT格式
-                                    if (format.codecs == mimeTypeSRT) {
-                                        hasSrtTrackSelected = true
-                                        break // 找到一个SRT轨道就足够
-                                    }
-                                    if (format.codecs == "application/pgs") {
-                                        hasPGSTrackSelected = true
-                                        break // 找到一个SRT轨道就足够
-                                    }
-                                    if (format.codecs == "text/x-ssa") {
-                                        hasASSTrackSelected = true
-                                        break // 找到一个SRT轨道就足够
-                                    }
-                                    if (format.codecs == "text/vtt") {
-                                        hasVTTTrackSelected = true
-                                        break // 找到一个SRT轨道就足够
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    // 根据是否选中了 SRT 或者 PGS轨道来设置可见性
-                    if (hasSrtTrackSelected || hasPGSTrackSelected || hasVTTTrackSelected) {
-                        Log.d("SDS1", "SubtitleView set to GONE because SRT PGS track is selected.")
-                        videoPlayerViewModel.updateSubtitleVisibility(View.GONE)
-                        videoPlayerViewModel.updateCusSubtitleVisibility(true)
-
-                    } else if (hasASSTrackSelected) {
-                        videoPlayerViewModel.updateSubtitleVisibility(View.GONE)
-                        Log.d("SDS1", "SubtitleView set to VISIBLE because ASS track is selected.")
-                        videoPlayerViewModel.updateCusSubtitleVisibility(true)
-                    } else {
-                        Log.d(
-                            "SDS1", "SubtitleView set to VISIBLE because no SRT track is selected."
-                        )
-                        videoPlayerViewModel.updateCusSubtitleVisibility(false)
-                        videoPlayerViewModel.updateSubtitleVisibility(View.VISIBLE)
-
+//
+//                        if (trackGroup.isSelected) {
+//                            // 获取被选中轨道的格式 (循环轨道组)
+//                            for (i in 0 until trackGroup.length) {
+//                                if (trackGroup.isTrackSelected(i)) {
+//                                    val format = trackGroup.getTrackFormat(i)
+//                                    // 检查是否是SRT格式
+//                                    if (format.codecs == mimeTypeSRT || format.sampleMimeType == mimeTypeSRT) {
+//                                        hasSrtTrackSelected = true
+//                                        break // 找到一个SRT轨道就足够
+//                                    }
+//                                    if (format.codecs == "application/pgs"|| format.sampleMimeType == "application/pgs") {
+//                                        hasPGSTrackSelected = true
+//                                        break // 找到一个SRT轨道就足够
+//                                    }
+//                                    if (format.codecs == "text/x-ssa"|| format.sampleMimeType == "text/x-ssa") {
+//                                        hasASSTrackSelected = true
+//                                        break // 找到一个SRT轨道就足够
+//                                    }
+//                                    if (format.codecs == "text/vtt"|| format.sampleMimeType =="text/vtt") {
+//                                        hasVTTTrackSelected = true
+//                                        break // 找到一个SRT轨道就足够
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+                        // 根据是否选中了 SRT 或者 PGS轨道来设置可见性
+//                    if (hasSrtTrackSelected || hasPGSTrackSelected || hasVTTTrackSelected) {
+//                        Log.i("SDS1", "SubtitleView set to GONE because SRT PGS track is selected.")
+//                        videoPlayerViewModel.updateSubtitleVisibility(View.GONE)
+//                        videoPlayerViewModel.updateCusSubtitleVisibility(true)
+//
+//                    } else if (hasASSTrackSelected) {
+//                        videoPlayerViewModel.updateSubtitleVisibility(View.GONE)
+//                        Log.i("SDS1", "SubtitleView set to VISIBLE because ASS track is selected.")
+//                        videoPlayerViewModel.updateCusSubtitleVisibility(true)
+//                    } else {
+//                        Log.i(
+//                            "SDS1", "SubtitleView set to VISIBLE because no SRT track is selected."
+//                        )
+//                        videoPlayerViewModel.updateCusSubtitleVisibility(true)
+//                        videoPlayerViewModel.updateSubtitleVisibility(View.GONE)
+//
+//                    }
                     }
                 }
-
+                if (videoPlayerViewModel.mutableSetOfTextTrackGroups.isNotEmpty() && settingsState.subLang.isEmpty()) {
+                    Log.i("SD1","自动选择第一个")
+                    exoPlayer.trackSelectionParameters =
+                        exoPlayer.trackSelectionParameters.buildUpon().setOverrideForType(
+                            TrackSelectionOverride(
+                                videoPlayerViewModel.mutableSetOfTextTrackGroups[0].mediaTrackGroup,
+                                0
+                            )
+                        ).build()
+                }
                 if (videoPlayerViewModel.mutableSetOfAudioTrackGroups.isNotEmpty()) {
                     for ((index, atGroup) in videoPlayerViewModel.mutableSetOfAudioTrackGroups.withIndex()) {
                         Log.d("VideoTrackGroupsID", atGroup.getTrackFormat(0).id.toString())

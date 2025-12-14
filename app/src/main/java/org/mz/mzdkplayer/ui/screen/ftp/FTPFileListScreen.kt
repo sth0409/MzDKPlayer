@@ -84,7 +84,7 @@ fun FTPFileListScreen(
         }
     }
     // 当传入的 path 参数变化时，或者首次进入时，尝试加载文件列表
-    LaunchedEffect(path,connectionStatus) { // 依赖 path
+    LaunchedEffect(path, connectionStatus) { // 依赖 path
         Log.d(
             "FTPFileListScreen",
             "LaunchedEffect triggered with path: $path, status: $connectionStatus"
@@ -150,6 +150,7 @@ fun FTPFileListScreen(
                     "加载失败: $errorMessage",
                 )
             }
+
             is FileConnectionStatus.FilesLoaded -> {
                 if (fileList.isEmpty()) {
                     FileEmptyScreen("此目录为空")
@@ -230,10 +231,12 @@ fun FTPFileListScreen(
                                                                             fileName,
                                                                             "UTF-8"
                                                                         )
-                                                                    }/${ URLEncoder.encode(
-                                                                        ftpConnection.name,
-                                                                        "UTF-8"
-                                                                    )}"
+                                                                    }/${
+                                                                        URLEncoder.encode(
+                                                                            ftpConnection.name,
+                                                                            "UTF-8"
+                                                                        )
+                                                                    }"
                                                                 )
                                                             }
 
@@ -293,10 +296,30 @@ fun FTPFileListScreen(
                                                                             fileName,
                                                                             "UTF-8"
                                                                         )
-                                                                    }/${ URLEncoder.encode(
-                                                                        ftpConnection.name,
-                                                                        "UTF-8"
-                                                                    )}/$currentAudioIndex"
+                                                                    }/${
+                                                                        URLEncoder.encode(
+                                                                            ftpConnection.name,
+                                                                            "UTF-8"
+                                                                        )
+                                                                    }/$currentAudioIndex"
+                                                                )
+                                                            }
+
+                                                            Tools.containsImageFileExtension(
+                                                                fileExtension
+                                                            ) -> {
+                                                                navController.navigate(
+                                                                    "PicViewer/$encodedFileUrl/FTP/${
+                                                                        URLEncoder.encode(
+                                                                            fileName,
+                                                                            "UTF-8"
+                                                                        )
+                                                                    }/${
+                                                                        URLEncoder.encode(
+                                                                            ftpConnection.name,
+                                                                            "UTF-8"
+                                                                        )
+                                                                    }"
                                                                 )
                                                             }
 
@@ -328,27 +351,17 @@ fun FTPFileListScreen(
                                                 focusedScale = 1.01f
                                             ),
                                             leadingContent = {
+                                                val fileExtension = Tools.extractFileExtension(file.name)
                                                 Icon(
-                                                    painter = if (file.isDirectory) {
-                                                        painterResource(R.drawable.baseline_folder_24)
-                                                    } else if (Tools.containsVideoFormat(
-                                                            Tools.extractFileExtension(file.name)
-                                                        )
-                                                    ) {
-
-                                                        painterResource(R.drawable.moviefileicon)
-                                                    } else if (Tools.containsAudioFormat(
-                                                            Tools.extractFileExtension(file.name)
-                                                        )
-                                                    ) {
-
-                                                        painterResource(R.drawable.baseline_music_note_24)
-                                                    } else {
-                                                        painterResource(R.drawable.baseline_insert_drive_file_24)
+                                                    painter = when {
+                                                        file.isDirectory -> painterResource(R.drawable.baseline_folder_24)
+                                                        Tools.containsVideoFormat(fileExtension) -> painterResource(R.drawable.moviefileicon)
+                                                        Tools.containsAudioFormat(fileExtension) -> painterResource(R.drawable.baseline_music_note_24)
+                                                        Tools.containsImageFileExtension(fileExtension) -> painterResource(R.drawable.image24dp)
+                                                        else -> painterResource(R.drawable.baseline_insert_drive_file_24)
                                                     },
                                                     contentDescription = null,
-
-                                                    )
+                                                )
                                             },
                                             headlineContent = {
                                                 Text(
@@ -405,7 +418,8 @@ fun FTPFileListScreen(
                     "正在连接FTP服务器", Modifier
                         .fillMaxSize()
                         .background(Color.Black)
-                )}
+                )
+            }
         }
     }
 }

@@ -49,6 +49,8 @@ import org.mz.mzdkplayer.data.model.WebDavConnection
 import org.mz.mzdkplayer.di.RepositoryProvider
 import org.mz.mzdkplayer.tool.viewModelWithFactory
 import org.mz.mzdkplayer.ui.audioplayer.AudioPlayerScreen
+
+import org.mz.mzdkplayer.ui.picviewer.PicViewerScreen
 import org.mz.mzdkplayer.ui.screen.movie.MovieDetailsScreen
 import org.mz.mzdkplayer.ui.screen.history.MediaHistoryScreen
 import org.mz.mzdkplayer.ui.screen.ftp.FTPConListScreen
@@ -360,6 +362,27 @@ fun MzDKPlayerAPP(externalVideoUri: Uri?) {
                     URLDecoder.decode(connectionName, "UTF-8"),
                     mediaHistoryViewModel
 
+                )
+            }
+        }
+        composable("PicViewer/{sourceUri}/{dataSourceType}/{fileName}/{connectionName}") { backStackEntry ->
+
+            //页面路由对应的页面组件
+            val sourceUri = backStackEntry.arguments?.getString("sourceUri")
+            val dataSourceType = backStackEntry.arguments?.getString("dataSourceType")
+            val fileName = backStackEntry.arguments?.getString("fileName")
+
+            val connectionName = backStackEntry.arguments?.getString("connectionName") ?: "未知"
+
+            // 检查参数是否不为空，并渲染屏幕
+            if (sourceUri != null && dataSourceType != null) {
+                Log.d("sourceUri", sourceUri)
+                Log.d("dataSourceType", dataSourceType)
+                PicViewerScreen(
+                    URLDecoder.decode(sourceUri, "UTF-8"),
+                    dataSourceType,
+                    URLDecoder.decode(fileName, "UTF-8") ?: "未知文件名",
+                    URLDecoder.decode(connectionName, "UTF-8"),
                 )
             }
         }

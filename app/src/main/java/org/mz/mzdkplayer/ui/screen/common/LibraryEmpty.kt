@@ -24,7 +24,7 @@ import androidx.tv.material3.Text
 import org.mz.mzdkplayer.R
 
 @Composable
-fun LibraryEmpty(isMovie: Boolean =true, navController: NavController){
+fun LibraryEmpty(type: String ="movie", navController: NavController){
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -40,7 +40,10 @@ fun LibraryEmpty(isMovie: Boolean =true, navController: NavController){
         ) {
             // 图标
             Icon(
-                painter =  if (isMovie )painterResource(id = R.drawable.movieoff24dp) else painterResource(id = R.drawable.tvoff24dp), // 请确保资源存在
+                painter =   when (type){
+                    "movie"-> painterResource(id = R.drawable.movieoff24dp)
+                    "tv"-> painterResource(id = R.drawable.tvoff24dp)
+                    else ->painterResource(id = R.drawable.musicoff24dp)}, // 请确保资源存在
                 contentDescription = "Error Icon",
                 tint = Color.Gray,
                 modifier = Modifier.size(100.dp) // 可选：调整图标大小
@@ -49,7 +52,7 @@ fun LibraryEmpty(isMovie: Boolean =true, navController: NavController){
 
             // 标题
             Text(
-                text = if (isMovie)"暂无电影信息" else "暂无TV剧信息",
+                text = when (type) {"movie"->"暂无电影信息" "tv"->"暂无TV剧信息" else -> "暂无音乐信息"},
                 style = MaterialTheme.typography.headlineSmall, // 使用 Material3 标题样式
                 fontWeight = FontWeight.Bold, // 加粗
                 color = Color.White, // 使用主题文字颜色
@@ -59,7 +62,9 @@ fun LibraryEmpty(isMovie: Boolean =true, navController: NavController){
             //
             MyIconButton(
                 text = "去文件区添加",
-                icon = R.drawable.videoadd24dp,
+                icon = when (type) {"movie","tv"->R.drawable.videoadd24dp
+                    else -> {R.drawable.musicnoteadd_24dp}
+                },
                 onClick = {navController.navigate("FileHomePage")}
             )
         }

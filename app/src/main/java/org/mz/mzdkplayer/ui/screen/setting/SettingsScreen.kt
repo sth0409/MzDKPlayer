@@ -1,6 +1,5 @@
 package org.mz.mzdkplayer.ui.screen.setting
 
-import SolarSystem
 import android.content.Context
 import android.content.pm.PackageManager
 import androidx.compose.foundation.background
@@ -8,12 +7,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.material.icons.Icons
 
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -25,16 +22,15 @@ import androidx.tv.material3.FilterChip
 import androidx.tv.material3.FilterChipDefaults
 import androidx.tv.material3.Icon
 import androidx.tv.material3.ListItem
-import androidx.tv.material3.ListItemDefaults
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Switch
 import androidx.tv.material3.Text
 import org.mz.mzdkplayer.R
 import org.mz.mzdkplayer.di.RepositoryProvider
-import org.mz.mzdkplayer.tool.BlackHoleSimulationScreen
 import org.mz.mzdkplayer.tool.viewModelWithFactory
 import org.mz.mzdkplayer.ui.screen.common.FilePermissionScreen
 import org.mz.mzdkplayer.ui.screen.common.MyIconButton
+import org.mz.mzdkplayer.ui.screen.vm.AudioViewModel
 import org.mz.mzdkplayer.ui.screen.vm.MovieViewModel
 import org.mz.mzdkplayer.ui.screen.vm.SettingsUiState
 import org.mz.mzdkplayer.ui.screen.vm.SettingsViewModel
@@ -53,7 +49,11 @@ enum class SettingCategory(val title: String, val iconRes: Int? = null) {
 }
 
 @Composable
-fun SettingsScreen(mainNavController: NavHostController,settingsVM: SettingsViewModel = viewModel()) {
+fun SettingsScreen(
+    mainNavController: NavHostController,
+    settingsVM: SettingsViewModel = viewModel(),
+    audioViewModel: AudioViewModel
+) {
     // 获取 ViewModel
 
     val movieVM: MovieViewModel = viewModelWithFactory { RepositoryProvider.createMovieViewModel() }
@@ -183,7 +183,7 @@ fun SettingsScreen(mainNavController: NavHostController,settingsVM: SettingsView
                         SourceSection(state, settingsVM)
                     }
                     SettingCategory.Tools -> item {
-                        ToolsSection(movieVM)
+                        ToolsSection(movieVM, audioViewModel )
                     }
                     SettingCategory.About -> item {
                         AboutSection(context)
@@ -356,18 +356,26 @@ fun SourceSection(state: SettingsUiState, settingsVM: SettingsViewModel) {
 }
 
 @Composable
-fun ToolsSection(movieVM: MovieViewModel) {
+fun ToolsSection(movieVM: MovieViewModel,audioViewModel: AudioViewModel) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Box(Modifier.padding(vertical = 8.dp).fillMaxWidth()) {
             FilePermissionScreen() // 如果需要可以取消注释
         }
         MyIconButton(
-            text = "清理媒体资料库",
+            text = "清理电影与TV媒体资料库",
             icon = R.drawable.close24dp,
             modifier = Modifier.align(Alignment.CenterHorizontally),
             onClick = { movieVM.clearMediaLibrary() }
         )
         Spacer(Modifier.height(16.dp))
+        MyIconButton(
+            text = "清理音乐资料库",
+            icon = R.drawable.close24dp,
+            modifier = Modifier.align(Alignment.CenterHorizontally),
+            onClick = { audioViewModel.clearLibrary() }
+        )
+        Spacer(Modifier.height(16.dp))
+
         PerformanceTestScreen()
     }
 }

@@ -47,7 +47,8 @@ import androidx.media3.extractor.ts.TsExtractor.FLAG_EMIT_RAW_SUBTITLE_DATA
 import androidx.media3.extractor.ts.TsExtractor.MODE_MULTI_PMT
 import androidx.media3.extractor.ts.TsPayloadReader
 import org.mz.mzdkplayer.tool.FtpDataSourceFactory
-import org.mz.mzdkplayer.tool.M2TsExtractor
+import org.mz.mzdkplayer.tool.M2tsExtractor
+
 
 import org.mz.mzdkplayer.tool.NFSDataSourceFactory
 import org.mz.mzdkplayer.tool.SmbDataSourceFactory
@@ -320,7 +321,7 @@ fun rememberPlayer(
 //                        TimestampAdjuster(4),
 //                        DefaultTsPayloadReaderFactory(FLAG_ALLOW_NON_IDR_KEYFRAMES),
 //                        192)
-                    M2TsExtractor()
+                    M2tsExtractor()
                 )
 
             }

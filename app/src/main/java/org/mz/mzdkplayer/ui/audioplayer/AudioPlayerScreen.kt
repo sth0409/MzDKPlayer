@@ -811,44 +811,18 @@ private fun Modifier.dPadEvents(
     focusRequester: FocusRequester
 ): Modifier = handleDPadKeyEvents(
     onLeft = {
-//        // 面板可见时，不处理向左事件
-        if (!audioPlayerViewModel.conFocus) {
-            focusRequester.requestFocus()
-        }
-
-        true
     },
     onRight = {
-        if (!audioPlayerViewModel.conFocus) {
-            focusRequester.requestFocus()
-        }
-        true
     },
     onUp = {
-        true
-//        if (!audioPlayerViewModel.atpVisibility) {
-//            audioPlayerViewModel.atpVisibility = true
-//            audioPlayerViewModel.selectedAorVorS = "L"
-//            true
-//        } else {
-//            false
-//        }
     },
     onDown = {
-        true
-//        if (audioPlayerViewModel.atpVisibility) {
-//            audioPlayerViewModel.atpVisibility = false
-//            true
-//        } else {
-//            false
-//        }
+
     },
     onEnter = {
         focusRequester.requestFocus()
         exoPlayer.pause()
         true
-
-
     },
 ).onKeyEvent { keyEvent ->
     when (keyEvent.key) {

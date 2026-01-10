@@ -41,6 +41,7 @@ import org.mz.mzdkplayer.ui.screen.vm.HTTPLinkConViewModel
 import org.mz.mzdkplayer.ui.screen.vm.HTTPLinkListViewModel // 假设你也有一个管理 HTTPLink 连接列表的 ViewModel
 import org.mz.mzdkplayer.ui.theme.myTTFColor
 import org.mz.mzdkplayer.ui.screen.common.MyIconButton
+import org.mz.mzdkplayer.ui.screen.common.RemoteInputQRPanel
 import org.mz.mzdkplayer.ui.screen.common.TvTextField
 import java.util.UUID
 
@@ -62,7 +63,7 @@ fun HTTPLinkConScreen(
 
 
     // 用户输入状态 - HTTPLink 需要服务器地址和共享名称
-    var serverAddress by remember { mutableStateOf("http://192.168.1.4:81") } // HTTP 服务器地址 (例如 http://192.168.1.4:81)
+    var serverAddress by remember { mutableStateOf("") } // HTTP 服务器地址 (例如 http://192.168.1.4:81)
     var shareName by remember { mutableStateOf("") } // HTTPLink 共享路径 (例如 /movies)
     var aliasName by remember { mutableStateOf("") } // 连接别名
 
@@ -339,8 +340,19 @@ fun HTTPLinkConScreen(
                         .fillMaxSize()
                         .padding(16.dp),
                     color = Color.Red
-                )
-            } else {
+                )}
+                else if (connectionStatus is FileConnectionStatus.Disconnected) {
+                    // 未连接时显示
+                    RemoteInputQRPanel { config ->
+                        // WebDav 可能字段含义不同，这里灵活映射
+                        // 比如 config.ip 映射给 baseUrl
+                        config.ip?.let { if(it.isNotBlank())  serverAddress= it} // 甚至可以拼接
+                        config.aliasName?.let { if(it.isNotBlank()) aliasName = it }
+                        config.shareName?.let { if(it.isNotBlank()) shareName = it }
+
+                    }
+                }
+             else {
                 // Disconnected 状态
                 Text(
                     text = "请先连接 HTTP Link 服务器",

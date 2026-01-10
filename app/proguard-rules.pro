@@ -103,3 +103,6 @@
 # 保留所有注解（避免混淆导致的注解失效）
 #-keep class androidx.annotation.** { *; }
 #-keep class java.lang.annotation.** { *; }
+
+# 3. 如果你使用了通用型 Server，也可以直接保护整个 tool 包
+-keep class org.mz.mzdkplayer.tool.** { *; }

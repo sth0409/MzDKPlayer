@@ -1,6 +1,7 @@
 package org.mz.mzdkplayer.ui.screen.smbfile
 
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -24,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -46,6 +48,7 @@ import org.mz.mzdkplayer.ui.screen.vm.SMBConViewModel
 import org.mz.mzdkplayer.ui.screen.vm.SMBListViewModel
 import org.mz.mzdkplayer.ui.theme.myTTFColor
 import org.mz.mzdkplayer.ui.screen.common.MyIconButton
+import org.mz.mzdkplayer.ui.screen.common.RemoteInputQRPanel
 import java.util.UUID
 
 /**
@@ -55,12 +58,12 @@ import java.util.UUID
 
 fun SMBConScreen(smbListViewModel: SMBListViewModel = viewModel()) {
     val viewModel: SMBConViewModel = viewModel()
-    var ip by remember { mutableStateOf("192.168.") }
+    var ip by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var shareName by remember { mutableStateOf("") }
     var aliasName by remember { mutableStateOf("") }
-
+    val keyboardController = LocalSoftwareKeyboardController.current
     // 全局跟踪当前活跃的输入框ID（初始为null）
     //val activeFieldId = remember { mutableStateOf<String?>(null) }
     val connectionStatus by viewModel.connectionStatus.collectAsState()
@@ -82,15 +85,17 @@ fun SMBConScreen(smbListViewModel: SMBListViewModel = viewModel()) {
         Column(
             modifier = Modifier
                 .padding(16.dp)
-                .fillMaxHeight(),
+                .fillMaxHeight()
+                .fillMaxWidth(0.5f), // 明确指定占一半宽度,
             verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Row(verticalAlignment=Alignment.CenterVertically) {
+        )
+        {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = "SMB 状态: $connectionStatus",
                     color = Color.White,
                     style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.widthIn(100.dp,400.dp),
+                    modifier = Modifier.widthIn(100.dp, 400.dp),
                     maxLines = 1
                 )
                 // 状态指示灯
@@ -112,7 +117,7 @@ fun SMBConScreen(smbListViewModel: SMBListViewModel = viewModel()) {
             TvTextField(
                 value = ip,
                 onValueChange = { ip = it },
-                modifier = Modifier.fillMaxWidth(0.5f),
+                modifier = Modifier.fillMaxWidth(1f),
                 placeholder = "服务器地址",
                 colors = myTTFColor(),
             )
@@ -120,7 +125,7 @@ fun SMBConScreen(smbListViewModel: SMBListViewModel = viewModel()) {
             TvTextField(
                 value = username,
                 onValueChange = { username = it },
-                modifier = Modifier.fillMaxWidth(0.5f),
+                modifier = Modifier.fillMaxWidth(1f),
                 placeholder = "用户名",
                 colors = myTTFColor(),
                 textStyle = TextStyle(color = Color.White),
@@ -129,7 +134,7 @@ fun SMBConScreen(smbListViewModel: SMBListViewModel = viewModel()) {
             TvTextField(
                 value = password,
                 onValueChange = { password = it },
-                modifier = Modifier.fillMaxWidth(0.5f),
+                modifier = Modifier.fillMaxWidth(1f),
                 colors = myTTFColor(),
                 placeholder = "密码",
 
@@ -139,7 +144,7 @@ fun SMBConScreen(smbListViewModel: SMBListViewModel = viewModel()) {
             TvTextField(
                 value = aliasName,
                 onValueChange = { aliasName = it },
-                modifier = Modifier.fillMaxWidth(0.5f),
+                modifier = Modifier.fillMaxWidth(1f),
                 placeholder = "别名",
                 colors = myTTFColor(),
                 textStyle = TextStyle(color = Color.White),
@@ -153,7 +158,7 @@ fun SMBConScreen(smbListViewModel: SMBListViewModel = viewModel()) {
                         shareName = it
                     }
                 },
-                modifier = Modifier.fillMaxWidth(0.5f),
+                modifier = Modifier.fillMaxWidth(1f),
                 placeholder = "分享名称（不能以'/'开头）",
                 colors = myTTFColor(),
                 textStyle = TextStyle(color = if (isShareNameValid) Color.White else Color.Red),
@@ -162,10 +167,10 @@ fun SMBConScreen(smbListViewModel: SMBListViewModel = viewModel()) {
             MyIconButton(
                 text = "测试连接",
                 icon = R.drawable.check24dp,
-                modifier = Modifier.fillMaxWidth(0.5f),
+                modifier = Modifier.fillMaxWidth(1f),
                 enabled = true,
                 onClick = {
-                    if (!Tools.validateSMBConnectionParams(context,ip,shareName,aliasName)) {
+                    if (!Tools.validateSMBConnectionParams(context, ip, shareName, aliasName)) {
                         return@MyIconButton
                     }
                     viewModel.testConnectSMB(ip, username, password, shareName)
@@ -177,13 +182,13 @@ fun SMBConScreen(smbListViewModel: SMBListViewModel = viewModel()) {
                 text = "保存连接",
                 icon = R.drawable.save24dp,
 
-                modifier = Modifier.fillMaxWidth(0.5f),
+                modifier = Modifier.fillMaxWidth(1f),
                 onClick = {
-                    if (!Tools.validateSMBConnectionParams(context,ip,shareName, aliasName)) {
+                    if (!Tools.validateSMBConnectionParams(context, ip, shareName, aliasName)) {
                         return@MyIconButton
                     }
 
-                    if  (isConnected) {
+                    if (isConnected) {
                         if (smbListViewModel.addConnection(
                                 SMBConnection(
                                     UUID.randomUUID().toString(),
@@ -197,50 +202,76 @@ fun SMBConScreen(smbListViewModel: SMBListViewModel = viewModel()) {
                         ) {
                             Toast.makeText(context, "添加成功", Toast.LENGTH_SHORT).show()
                         } else {
-                            Toast.makeText(context, "添加失败,已经有相同的连接存在", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                "添加失败,已经有相同的连接存在",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     } else {
                         Toast.makeText(context, "请先连接成功后再保存", Toast.LENGTH_SHORT).show()
                     }
                 },
 
-            )
+                )
 
             MyIconButton(
                 text = "断开连接",
                 icon = R.drawable.linkoff24dp,
 
-                modifier = Modifier.fillMaxWidth(0.5f),
-                onClick = { viewModel.disconnectSMB() },
+                modifier = Modifier.fillMaxWidth(1f),
+                onClick = {
+                    keyboardController?.hide()
+                    Log.i("SMBCON","断开连接")
+                    viewModel.disconnectSMB()
+                          },
             )
 
 
         }
-
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxHeight()
+        Column(
+            modifier = Modifier.weight(1f),
         ) {
-            itemsIndexed(fileList) { index, fileName ->
-                Row(
+            if (isConnected && fileList.isNotEmpty()) {
+                LazyColumn(
                     modifier = Modifier
-                        .fillMaxHeight()
-                        .clickable {
+                        .fillMaxSize()
+                ) {
+
+                    itemsIndexed(fileList) { index, fileName ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .clickable {
+
+                                }
+                                .padding(8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = fileName.name,
+                                modifier = Modifier.fillMaxWidth(),
+                                color = Color.White,
+                                fontSize = 20.sp,
+
+                                )
 
                         }
-                        .padding(8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = fileName.name,
-                        modifier = Modifier.fillMaxWidth(),
-                        color = Color.White,
-                        fontSize = 20.sp,
-
-                    )
-
+                    }
+                }
+            } else {
+                // 2. 未连接：显示扫码组件
+                // 只需这一行代码！
+                RemoteInputQRPanel { config ->
+                    // 这里处理回调，自动填充
+                    config.ip?.let { if (it.isNotBlank()) ip = it }
+                    config.username?.let { if (it.isNotBlank()) username = it }
+                    config.password?.let { if (it.isNotBlank()) password = it }
+                    config.shareName?.let { if (it.isNotBlank()) shareName = it }
+                    config.aliasName?.let { if (it.isNotBlank()) aliasName = it }
                 }
             }
         }
     }
 }
+

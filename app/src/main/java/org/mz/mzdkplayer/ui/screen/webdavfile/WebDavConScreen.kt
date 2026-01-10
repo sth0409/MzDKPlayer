@@ -42,6 +42,7 @@ import org.mz.mzdkplayer.ui.screen.vm.WebDavConViewModel
 import org.mz.mzdkplayer.ui.screen.vm.WebDavListViewModel
 import org.mz.mzdkplayer.ui.theme.myTTFColor
 import org.mz.mzdkplayer.ui.screen.common.MyIconButton
+import org.mz.mzdkplayer.ui.screen.common.RemoteInputQRPanel
 import org.mz.mzdkplayer.ui.screen.common.TvTextField
 import java.util.UUID
 
@@ -59,7 +60,7 @@ fun WebDavConScreen() {
     var currentPath by remember { mutableStateOf("") }
 
     // 用户输入状态 - baseUrl 现在表示完整的路径
-    var baseUrl by remember { mutableStateOf("http://") }
+    var baseUrl by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var aliasName by remember { mutableStateOf("") }
@@ -287,7 +288,17 @@ fun WebDavConScreen() {
                     color = Color.Red
                 )
             }
-
+            is FileConnectionStatus.Disconnected -> {
+                // 未连接时显示
+                RemoteInputQRPanel { config ->
+                    // WebDav 可能字段含义不同，这里灵活映射
+                    // 比如 config.ip 映射给 baseUrl
+                    config.ip?.let { if(it.isNotBlank()) baseUrl = it } // 甚至可以拼接
+                    config.username?.let { if(it.isNotBlank()) username = it }
+                    config.password?.let { if(it.isNotBlank()) password = it }
+                    config.aliasName?.let { if(it.isNotBlank()) aliasName = it }
+                }
+            }
             else -> {
                 Text(
                     text = "无文件",

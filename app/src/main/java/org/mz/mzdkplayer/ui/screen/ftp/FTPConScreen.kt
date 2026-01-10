@@ -43,6 +43,7 @@ import org.mz.mzdkplayer.ui.screen.vm.FTPConViewModel // 引入 FTP ViewModel
 import org.mz.mzdkplayer.ui.screen.vm.FTPListViewModel // 引入 FTP List ViewModel
 import org.mz.mzdkplayer.ui.theme.myTTFColor
 import org.mz.mzdkplayer.ui.screen.common.MyIconButton
+import org.mz.mzdkplayer.ui.screen.common.RemoteInputQRPanel
 import org.mz.mzdkplayer.ui.screen.common.TvTextField
 import java.util.Locale
 
@@ -65,7 +66,7 @@ fun FTPConScreen(
     val currentPath by ftpConViewModel.currentPath.collectAsState()
 
     // 用户输入状态 - 注意 FTP 需要服务器地址和端口
-    var server by remember { mutableStateOf("192.168") } // 服务器地址
+    var server by remember { mutableStateOf("") } // 服务器地址
     var port by remember { mutableStateOf("21") } // FTP 端口，默认 21
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -386,7 +387,18 @@ fun FTPConScreen(
                     color = Color.Red
                 )
             }
-
+            is FileConnectionStatus.Disconnected -> {
+                // 未连接时显示
+                RemoteInputQRPanel { config ->
+                    // WebDav 可能字段含义不同，这里灵活映射
+                    // 比如 config.ip 映射给 baseUrl
+                    config.ip?.let { if(it.isNotBlank()) server =it } // 甚至可以拼接
+                    config.username?.let { if(it.isNotBlank()) username = it }
+                    config.password?.let { if(it.isNotBlank()) password = it }
+                    config.aliasName?.let { if(it.isNotBlank()) aliasName = it }
+                    config.shareName?.let { if(it.isNotBlank()) shareName = it }
+                }
+            }
             else -> {
                 // Disconnected 或 Connected 但列表为空
                 Text(

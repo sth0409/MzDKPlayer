@@ -43,6 +43,7 @@ import org.mz.mzdkplayer.ui.screen.vm.NFSConViewModel
 import org.mz.mzdkplayer.ui.screen.vm.NFSListViewModel // 假设你也有一个管理 NFS 连接列表的 ViewModel
 import org.mz.mzdkplayer.ui.theme.myTTFColor
 import org.mz.mzdkplayer.ui.screen.common.MyIconButton
+import org.mz.mzdkplayer.ui.screen.common.RemoteInputQRPanel
 import org.mz.mzdkplayer.ui.screen.common.TvTextField
 import java.util.Locale
 import java.util.UUID
@@ -65,7 +66,7 @@ fun NFSConScreen(
     val currentPath by nfsConViewModel.currentPath.collectAsState()
 
     // 用户输入状态 - NFS 需要服务器地址和导出路径
-    var serverAddress by remember { mutableStateOf("192.168") } // NFS 服务器地址
+    var serverAddress by remember { mutableStateOf("") } // NFS 服务器地址
     var shareName by remember { mutableStateOf("") } // NFS 导出路径
     var aliasName by remember { mutableStateOf("") } // 连接别名
 
@@ -359,7 +360,17 @@ fun NFSConScreen(
                         color = Color.Red
                     )
                 }
+                is FileConnectionStatus.Disconnected -> {
+                    // 未连接时显示
+                    RemoteInputQRPanel { config ->
+                        // WebDav 可能字段含义不同，这里灵活映射
+                        // 比如 config.ip 映射给 baseUrl
+                        config.ip?.let { if(it.isNotBlank())  serverAddress= it} // 甚至可以拼接
+                        config.aliasName?.let { if(it.isNotBlank()) aliasName = it }
+                        config.shareName?.let { if(it.isNotBlank()) shareName = it }
 
+                    }
+                }
                 else -> {
                     // 显示连接中提示
                     Text(

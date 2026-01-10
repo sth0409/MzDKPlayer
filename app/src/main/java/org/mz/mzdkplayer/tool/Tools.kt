@@ -5,6 +5,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
+import android.graphics.Color
 import android.os.Build
 import android.util.Log
 import android.widget.Toast
@@ -12,6 +13,8 @@ import androidx.annotation.OptIn
 import androidx.compose.foundation.Image
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.painterResource
 
 import androidx.media3.common.Format
@@ -25,8 +28,15 @@ import java.io.FileOutputStream
 import java.util.Locale
 import androidx.core.graphics.scale
 import androidx.core.graphics.createBitmap
+import com.google.zxing.BarcodeFormat
+import com.google.zxing.MultiFormatWriter
+import java.net.Inet4Address
+import java.net.NetworkInterface
+import java.util.Collections
 import kotlin.math.log10
 import kotlin.math.pow
+import kotlin.text.contains
+import androidx.core.graphics.set
 
 object Tools {
     fun extractFileExtension(fileName: String?): String {
@@ -664,6 +674,82 @@ object Tools {
         val units = arrayOf("B", "KB", "MB", "GB", "TB")
         val digitGroups = (log10(bytes.toDouble()) / log10(1024.0)).toInt()
         return String.format(Locale.getDefault(),"%.2f %s", bytes / 1024.0.pow(digitGroups.toDouble()), units[digitGroups])
+    }
+
+    /**
+     * 尝试在指定端口范围内启动服务器
+     * @param startPort 起始端口，例如 8888
+     * @param maxTries 最大尝试次数，例如 10 次
+     * @param onReceive 回调函数
+     * @return 返回一个 Pair(启动成功的Server对象, 实际端口号)，如果失败返回 null
+     */
+    fun startServerOnAvailablePort(
+        startPort: Int,
+        maxTries: Int = 20,
+        onReceive: (RemoteConfig) -> Unit
+    ): Pair<RemoteInputServer, Int>? {
+        var currentPort = startPort
+
+        for (i in 0 until maxTries) {
+            try {
+                // 尝试创建并启动
+                val server = RemoteInputServer(currentPort, onReceive)
+                server.start()
+                // 如果代码走到这里没有报错，说明启动成功了
+                return Pair(server, currentPort)
+            } catch (e: Exception) {
+                // 启动失败（通常是 BindException 端口被占），打印日志并尝试下一个端口
+                e.printStackTrace()
+                currentPort++
+            }
+        }
+        return null // 所有尝试都失败了
+    }
+
+    fun getLocalIpAddress(): String? {
+        try {
+            // 获取设备上所有的网络接口（网卡）
+            val interfaces = NetworkInterface.getNetworkInterfaces()
+            for (networkInterface in Collections.list(interfaces)) {
+                // 排除掉回环地址（Loopback）和未启动的网卡
+                if (networkInterface.isLoopback || !networkInterface.isUp) continue
+
+                val addresses = networkInterface.inetAddresses
+                for (inetAddress in Collections.list(addresses)) {
+                    // 只找 IPv4 地址，排除 IPv6（因为目前大多数局域网环境还是 IPv4 比较稳）
+                    if (!inetAddress.isLoopbackAddress && inetAddress is Inet4Address) {
+                        val ip = inetAddress.hostAddress
+                        // 过滤掉虚拟网卡或非内网网段（可选，通常直接返回第一个有效的 IPv4 即可）
+                        if (ip != null && !ip.contains(":")) {
+                            return ip
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return null
+    }
+
+    // 生成二维码 Bitmap
+    fun generateQRCode(content: String, size: Int = 512): ImageBitmap? {
+        return try {
+            val bits = MultiFormatWriter().encode(content, BarcodeFormat.QR_CODE, size, size)
+            val width = bits.width
+            val height = bits.height
+            val bitmap = createBitmap(width, height, Bitmap.Config.RGB_565)
+            for (x in 0 until width) {
+                for (y in 0 until height) {
+                    bitmap[x, y] =
+                        if (bits[x, y]) Color.BLACK else Color.WHITE
+                }
+            }
+            bitmap.asImageBitmap()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
     }
 }
 

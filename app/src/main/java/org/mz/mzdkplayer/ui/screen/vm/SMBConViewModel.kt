@@ -69,10 +69,6 @@ class SMBConViewModel : ViewModel() {
     fun testConnectSMB(ip: String, username: String, password: String, shareName: String) {
 
         viewModelScope.launch {
-            //disconnectSMB()  // 先清理旧连接
-//            withContext(Dispatchers.Main) {
-//                _connectionStatus.value = "正在尝试连接"
-//            }
 
             mutex.withLock {
                 try {
@@ -208,11 +204,15 @@ class SMBConViewModel : ViewModel() {
                 connection = null
             }
 
-            withContext(Dispatchers.Main) {
-                _connectionStatus.value = FileConnectionStatus.Disconnected
-                _fileList.value = emptyList()
-            }
+//            withContext(Dispatchers.Main) {
+//                _connectionStatus.value = FileConnectionStatus.Disconnected
+//                _fileList.value = emptyList()
+//            }
         }
+        // 回到主线程更新 UI 状态
+        _connectionStatus.value = FileConnectionStatus.Disconnected
+        _fileList.value = emptyList()
+        Log.i("SMBCON",_connectionStatus.value.toString())
     }
 
     fun isConnected(): Boolean {

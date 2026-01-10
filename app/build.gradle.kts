@@ -15,8 +15,8 @@ android {
         applicationId = "org.mz.mzdkplayer"
         minSdk = 23
         targetSdk = 36
-        versionCode = 18
-        versionName = "1.13.2"
+        versionCode = 19
+        versionName = "1.13.3"
         ndk {
             //noinspection ChromeOsAbiSupport
             abiFilters += listOf("armeabi-v7a", "arm64-v8a","x86")
@@ -130,6 +130,11 @@ dependencies {
         exclude(group = "stax", module = "stax")
         exclude(group = "xmlpull", module = "xmlpull")
     }
+    // 二维码
+    implementation(libs.core)
+    // 轻量级 HTTP 服务器
+    implementation(libs.nanohttpd)
+    // Gson 用于解析 JSON (如果你的项目里还没有的话)
 
     implementation(libs.jaudiotagger)
     implementation(libs.commons.net)

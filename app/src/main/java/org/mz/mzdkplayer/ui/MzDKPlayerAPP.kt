@@ -94,7 +94,6 @@ import org.mz.mzdkplayer.ui.screen.vm.SettingsViewModel
 import org.mz.mzdkplayer.ui.theme.mySideListItemColor
 
 import org.mz.mzdkplayer.ui.videoplayer.VideoPlayerScreen
-import org.mz.mzdkplayer.ui.videoplayer.components.VLCVideoPlayerScreen
 import java.net.URLDecoder
 import java.net.URLEncoder
 
@@ -556,19 +555,6 @@ fun MzDKPlayerAPP(externalVideoUri: Uri?) {
                 currentEpisode = episodeNumber, // 传递集号
                 navController = mainNavController
             )
-        }
-        composable(
-            route = "VLCVideoPlayer/{mediaUri}/{fileName}",
-            arguments = listOf(
-                navArgument("mediaUri") { type = NavType.StringType },
-                navArgument("fileName") { type = NavType.StringType }
-            )
-        ) { backStackEntry ->
-            val mediaUri = backStackEntry.arguments?.getString("mediaUri") ?: ""
-            val fileName = backStackEntry.arguments?.getString("fileName") ?: ""
-
-            // 调用刚才创建的测试界面
-            VLCVideoPlayerScreen(mediaUri = URLDecoder.decode(mediaUri, "UTF-8"), fileName = fileName)
         }
         composable("SMBListScreen") {
             SMBConListScreen(mainNavController, smbListViewModel)

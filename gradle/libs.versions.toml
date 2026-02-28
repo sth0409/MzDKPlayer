@@ -1,21 +1,24 @@
 [versions]
 accompanistPermissions = "0.37.3"
 
-agp = "9.0.0"
+agp = "9.0.1"
 akdanmaku = "1.0.3"
 
+ashley = "1.7.4"
 assMedia = "0.3.0"
 
 commonsNet = "3.12.0"
 core = "3.5.4"
+gdx = "1.14.0"
+gdxBackendAndroid = "1.14.0"
 gson = "2.13.2"
 converterGson = "3.0.0"
 jaudiotagger = "3.0.1"
-
+vlcAndroidMini = "3.5.0"
 kotlin = "2.3.10"
 coreKtx = "1.17.0"
 appcompat = "1.7.1"
-composeBom = "2026.02.00"
+composeBom = "2026.02.01"
 libvlcAll = "3.6.5"
 logbackAndroid = "3.0.0"
 desugarJdkLibs = "2.1.5" # 检查是否有更新版本
@@ -39,7 +42,7 @@ lifecycleRuntimeKtx = "2.10.0"
 activityCompose = "1.12.4"
 datastorePreferences = "1.2.0"
 navigationCompose = "2.9.7"
-ui = "1.10.3"
+ui = "1.10.4"
 ksp = "2.3.5"
 retrofit = "3.0.0"
 
@@ -70,15 +73,19 @@ androidx-tv-material = { group = "androidx.tv", name = "tv-material", version.re
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 androidx-media3-exoplayer = { module = "androidx.media3:media3-exoplayer", version.ref = "media3Ui" }
+vlc-android-mini = { module = "io.github.mzhsy1:vlc-android-mini", version.ref = "vlcAndroidMini" }
 #androidx-media3-exoplayer-dash = { module = "androidx.media3:media3-exoplayer-dash", version.ref = "media3Ui" }
 androidx-media3-ui = { module = "androidx.media3:media3-ui", version.ref = "media3Ui" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
 akdanmaku = { module = "com.kuaishou:akdanmaku", version.ref = "akdanmaku" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
+ashley = { module = "com.badlogicgames.ashley:ashley", version.ref = "ashley" }
 coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coilNetworkOkhttp" }
 coil3-coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coilComposeVersion" }
 ass-media = { module = "io.github.peerless2012:ass-media", version.ref = "assMedia" }
 core = { module = "com.google.zxing:core", version.ref = "core" }
+gdx = { module = "com.badlogicgames.gdx:gdx", version.ref = "gdx" }
+gdx-backend-android = { module = "com.badlogicgames.gdx:gdx-backend-android", version.ref = "gdxBackendAndroid" }
 libvlc-all = { module = "org.videolan.android:libvlc-all", version.ref = "libvlcAll" }
 nanohttpd = { module = "org.nanohttpd:nanohttpd", version.ref = "nanohttpd" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }

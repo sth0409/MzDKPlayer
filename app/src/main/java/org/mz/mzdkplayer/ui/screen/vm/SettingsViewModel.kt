@@ -19,6 +19,7 @@ data class SettingsUiState(
     val subBgColor: Long = 0x80000000,
     val subBottomPadding: Float = 30f,
     val forcePgsCenter: Boolean = false,
+    val defaultPlayer: String = "exo",
     // 刮削
     val smb: Boolean = true,
     val webdav: Boolean = true,
@@ -51,6 +52,7 @@ class SettingsViewModel : ViewModel() {
                 subBgColor = repo.subtitleBgColorHex,
                 subBottomPadding = repo.subtitleBottomPadding,
                 forcePgsCenter = repo.forcePgsCenter,
+                defaultPlayer = repo.defaultPlayer,
                 smb = repo.enableSmb,
                 webdav = repo.enableWebDav,
                 ftp = repo.enableFtp,
@@ -74,6 +76,10 @@ class SettingsViewModel : ViewModel() {
     fun setSubBgColor(v: Long) { repo.subtitleBgColorHex = v; refreshState() }
     fun setSubBottomPadding(v: Float) { repo.subtitleBottomPadding = v; refreshState() }
     fun togglePgsCenter(v: Boolean) { repo.forcePgsCenter = v; refreshState() }
+    fun setDefaultPlayer(kernel: String) {
+        repo.defaultPlayer = kernel
+        refreshState()
+    }
 
     // 刮削开关
     fun toggleSource(source: String, v: Boolean) {

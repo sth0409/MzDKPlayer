@@ -70,11 +70,6 @@ fun SettingsScreen(
 
     // 当前选中的分类，默认为第一个
     var selectedCategory by remember { mutableStateOf(SettingCategory.General) }
-// 全局彩蛋状态
-    var currentEggState by remember { mutableStateOf(EggState.NONE) }
-
-    // 对话框状态
-    var showEggDialog by remember { mutableStateOf(false) }
 
     // 焦点计数器 (用于隐藏的计数)
     var focusClickCount by remember { mutableIntStateOf(0) }
@@ -244,6 +239,15 @@ fun PlaybackSection(state: SettingsUiState, settingsVM: SettingsViewModel) {
                     "" -> "zh"; "zh" -> "en"; else -> ""
                 }
                 settingsVM.setAudioLanguage(next)
+            }
+        )
+        // ==================== 新增：播放器内核选择 ====================
+        ActionSettingItem(
+            title = "默认播放器内核",
+            value = if (state.defaultPlayer == "vlc") "VLC" else "ExoPlayer",
+            onClick = {
+                val next = if (state.defaultPlayer == "exo") "vlc" else "exo"
+                settingsVM.setDefaultPlayer(next)
             }
         )
         ActionSettingItem(
@@ -552,9 +556,4 @@ fun parseBgColorName(color: Long): String = when (color) {
     else -> "自定义"
 }
 
-// --- 彩蛋状态枚举 ---
-enum class EggState {
-    NONE, // 未激活
-    SOLAR_SYSTEM, // 太阳系背景
-    BLACK_HOLE // 黑洞背景
-}
+

@@ -174,8 +174,8 @@ object Tools {
      * @param format 音频轨道的 Format 对象
      * @return 推断出的音频格式描述字符串
      */
-    fun inferAudioFormatType(format: Format): String {
-        val mimeType = format.sampleMimeType ?: return "Unknown Audio Format (No MIME type)"
+    fun inferAudioFormatType(mimeType: String): String {
+        //val mimeType = format.sampleMimeType ?: return "Unknown Audio Format (No MIME type)"
 
         return when (mimeType) {
             "audio/vnd.dts" -> "DTS" // DTS 家族格式判断
@@ -232,63 +232,68 @@ object Tools {
 //    }
 
 
-    fun audioFormatIconType(format: Format): Int {
-        val mimeType = format.sampleMimeType ?: return   R.drawable.noradudio
+    fun audioFormatIconType(mimeType: String?): Int {
+        if (mimeType == null) return R.drawable.noradudio
 
-        return when (mimeType) {
-            "audio/vnd.dts" -> R.drawable.dts_1 // DTS 家族格式判断
-            "audio/vnd.dts.hd" -> R.drawable.dts_hd_master_audio // DTS 家族格式判断
-            // Dolby 家族格式判断
-            "audio/true-hd" -> R.drawable.logo_dolby_audio
-            "audio/ac3" -> R.drawable.logo_dolby_audio
-            "audio/eac3" -> R.drawable.logo_dolby_audio
-            "audio/eac3-joc" -> R.drawable.dolby_atmos
+        // 统一转小写，去掉空格，方便匹配
+        val type = mimeType.lowercase().trim()
 
-            // AAC 格式
-            "audio/mp4a-latm" -> R.drawable.aac
+        return when {
+            // --- 1. Dolby 家族 ---
+            // Atmos 优先级最高
+            type.contains("eac3-joc") || type.contains("atmos") -> {
+                R.drawable.dolby_atmos
+            }
+            // TrueHD (ExoPlayer: audio/true-hd | VLC: TrueHD Audio)
+            type.contains("true-hd") || type.contains("truehd") -> {
+                R.drawable.logo_dolby_audio
+            }
+            // AC3 / A52 (ExoPlayer: audio/ac3 | VLC: A52 Audio (aka AC3))
+            type.contains("ac3") || type.contains("ac-3") || type.contains("a52") -> {
+                R.drawable.logo_dolby_audio
+            }
+            // E-AC3 / DD+
+            type.contains("eac3") || type.contains("ec-3") -> {
+                R.drawable.logo_dolby_audio
+            }
 
-            // OPUS 格式
-            "audio/opus" ->   R.drawable.noradudio
+            // --- 2. DTS 家族 ---
+            // DTS-HD (ExoPlayer: audio/vnd.dts.hd | VLC 如果包含特定标识)
+            type.contains("dts-hd") || type.contains("dtshd") || type.contains("master audio") -> {
+                R.drawable.dts_hd_master_audio
+            }
+            // 普通 DTS (ExoPlayer: audio/vnd.dts | VLC: DTS Audio)
+            type.contains("dts") -> {
+                R.drawable.dts_1
+            }
 
-            // Vorbis 格式
-            "audio/vorbis" ->    R.drawable.noradudio
+            // --- 3. 其他常见格式 ---
+            // AAC (ExoPlayer: audio/mp4a-latm | VLC: AAC Audio)
+            type.contains("mp4a") || type.contains("aac") -> {
+                R.drawable.aac
+            }
+            // FLAC
+            type.contains("flac") -> {
+                R.drawable.hei
+            }
+            // MP3 (ExoPlayer: audio/mpeg | VLC: MPEG Audio layer 3)
+            type.contains("mpeg") || type.contains("mp3") || type.contains("layer 3") -> {
+                R.drawable.mp3
+            }
+            // PCM / WAV
+            type.contains("pcm") || type.contains("raw") || type.contains("wav") -> {
+                R.drawable.pcm_seeklogo__1_
+            }
 
-            // FLAC 格式
-            "audio/flac" -> R.drawable.hei
-
-            // PCM 格式
-            "audio/raw" -> R.drawable.pcm_seeklogo__1_
-            "audio/wav" -> R.drawable.pcm_seeklogo__1_
-            "audio/x-wav" -> R.drawable.pcm_seeklogo__1_
-
-            // MP3 格式
-            "audio/mpeg" ->  R.drawable.mp3
-            "audio/mp3" -> R.drawable.mp3
-
-            // 其他已知格式
-            else ->   R.drawable.noradudio
+            // 默认返回
+            else -> R.drawable.noradudio
         }
     }
 
 
 
 
-    /**
-     * 获取音频轨道的详细技术信息
-     */
-    @OptIn(UnstableApi::class)
-    fun getAudioTrackTechnicalDetails(format: Format): Map<String, Any> {
-        return mapOf(
-            "format" to inferAudioFormatType(format),
-            "mimeType" to (format.sampleMimeType ?: "null"),
-            "codecs" to (format.codecs ?: "null"),
-            "channels" to format.channelCount,
-            "sampleRate" to if (format.sampleRate != Format.NO_VALUE) "${format.sampleRate}Hz" else "unknown",
-            "bitrate" to if (format.bitrate != Format.NO_VALUE) "${format.bitrate / 1000} kbps" else "unknown",
-            "language" to (format.language ?: "und"),
-            "id" to (format.id ?: "null")
-        )
-    }
+
 
     /**
      * 将语言代码转换为中文语言名称（特别细化中文区分）

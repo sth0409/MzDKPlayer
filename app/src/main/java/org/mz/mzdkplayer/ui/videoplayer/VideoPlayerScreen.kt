@@ -82,6 +82,9 @@ import org.mz.mzdkplayer.data.model.DanmakuScreenRatio
 import org.mz.mzdkplayer.data.model.MediaHistoryRecord
 
 import org.mz.mzdkplayer.data.repository.DanmakuSettingsManager
+import org.mz.mzdkplayer.player.core.IMzPlayer
+import org.mz.mzdkplayer.player.exo.MzExoPlayer
+import org.mz.mzdkplayer.player.vlc.MzVlcPlayer
 import org.mz.mzdkplayer.tool.FtpDataSource
 import org.mz.mzdkplayer.tool.SmbDataSource
 import org.mz.mzdkplayer.tool.SmbUtils
@@ -98,7 +101,6 @@ import org.mz.mzdkplayer.ui.screen.vm.VideoPlayerViewModel
 import org.mz.mzdkplayer.ui.theme.myIconButtonColor
 import org.mz.mzdkplayer.ui.videoplayer.components.AkDanmakuPlayer
 import org.mz.mzdkplayer.ui.videoplayer.components.AudioTrackPanel
-import org.mz.mzdkplayer.ui.videoplayer.components.BuilderMzPlayer
 import org.mz.mzdkplayer.ui.videoplayer.components.DanmakuPanel
 import org.mz.mzdkplayer.ui.videoplayer.components.SubtitleTrackPanel
 import org.mz.mzdkplayer.ui.videoplayer.components.VideoPlayerControlsIcon
@@ -111,7 +113,7 @@ import org.mz.mzdkplayer.ui.videoplayer.components.VideoPlayerPulseState
 import org.mz.mzdkplayer.ui.videoplayer.components.VideoPlayerSeeker
 import org.mz.mzdkplayer.ui.videoplayer.components.VideoPlayerState
 import org.mz.mzdkplayer.ui.videoplayer.components.VideoTrackPanel
-import org.mz.mzdkplayer.ui.videoplayer.components.rememberPlayer
+
 import org.mz.mzdkplayer.ui.videoplayer.components.rememberVideoPlayerPulseState
 import org.mz.mzdkplayer.ui.videoplayer.components.rememberVideoPlayerState
 import java.io.IOException
@@ -136,12 +138,20 @@ fun VideoPlayerScreen(
     fileName: String = "未知文件名",
     connectionName: String,
     mediaHistoryViewModel: MediaHistoryViewModel,
+    useVlc: Boolean = false, // 开关：让用户或者设置决定用哪个内核
     settingsViewModel: SettingsViewModel = viewModel()
 ) {
     // 获取当前 Compose 上下文
     val context = LocalContext.current
-    // 记住并创建 ExoPlayer 实例
-    val exoPlayer = rememberPlayer(context, mediaUri, dataSourceType, settingsViewModel)
+    // 记住并创建 Player 实例
+    // 1. 根据配置实例化解耦的 Player 内核
+    val player: IMzPlayer = remember(useVlc, mediaUri) {
+        if (useVlc) {
+            MzVlcPlayer(context, mediaUri)
+        } else {
+            MzExoPlayer(context, mediaUri, dataSourceType, settingsViewModel)
+        }
+    }
     // 记住并创建视频播放器状态管理器
     val videoPlayerState = rememberVideoPlayerState(hideSeconds = 6)
     // 获取 ViewModel 实例
@@ -153,7 +163,7 @@ fun VideoPlayerScreen(
     // 状态：当前媒体播放位置
     var contentCurrentPosition by remember { mutableLongStateOf(0L) }
     // 状态：当前播放状态 (播放/暂停)
-    var isPlaying: Boolean by remember { mutableStateOf(exoPlayer.isPlaying) }
+    var isPlaying: Boolean by remember { mutableStateOf(player.isPlaying) }
 
     // 网速监控相关状态
     // 状态：计算得到的网络速度 (bytes/sec)
@@ -173,7 +183,6 @@ fun VideoPlayerScreen(
         )
     // 状态：当前的字幕组 (CueGroup)
     var currentCueGroup: CueGroup? by remember { mutableStateOf<CueGroup?>(null) }
-    val playerStatus by videoPlayerViewModel.playerStatus.collectAsState()
     // 弹幕数据
     // 状态：解析后的弹幕数据列表
     var danmakuDataList by remember { mutableStateOf<List<DanmakuData>?>(null) }
@@ -195,17 +204,23 @@ fun VideoPlayerScreen(
     // 增加一个标记，确保只在第一次准备好时触发计时
     var hasTriggeredTimer by remember { mutableStateOf(false) }
 
-    var lastPresentationTimeUs by remember { mutableLongStateOf(-1L) }
-    val pgsAccumulator = remember { mutableListOf<Cue>() }
+    // 👇 新增：标记是否是首次加载
+    var isFirstLoad by remember { mutableStateOf(true) }
 
+    val videoTracks by player.videoTracks.collectAsState()
+    val audioTracks by player.audioTracks.collectAsState()
+    val subtitleTracks by player.subtitleTracks.collectAsState()
+
+    val isPlayerPlaying by player.isPlayingFlow.collectAsState()
+    val playerStatus by player.playerStatus.collectAsState()
     // 构建播放器 (设置媒体源等)
-    BuilderMzPlayer(context, mediaUri, exoPlayer, dataSourceType, settingsViewModel)
+    //BuilderMzPlayer(context, mediaUri, exoPlayer, dataSourceType, settingsViewModel)
     // 当 Composable 离开组合时，释放资源
     DisposableEffect(Unit) {
         onDispose {
             // 1. 获取播放器当前状态
-            val currentPos = exoPlayer.currentPosition
-            val totalDur = exoPlayer.duration
+            val currentPos = player.currentPosition
+            val totalDur = player.duration
 
             // 2. 构建历史记录对象
             // 只要播放过（进度 > 0）且总时长有效，才保存
@@ -228,7 +243,7 @@ fun VideoPlayerScreen(
             }
 
             // 4. 释放资源
-            exoPlayer.release()
+            player.release()
             mDanmakuPlayer.release()
 
             // ⭐️ 新增：退出播放页面时，彻底关闭 SMB 连接
@@ -434,94 +449,59 @@ fun VideoPlayerScreen(
     // 监听 ExoPlayer 播放状态变化，并更新 `isPlaying` 状态
     // 同时定期更新 `contentCurrentPosition`
     LaunchedEffect(Unit) {
-        exoPlayer.addListener(object : Player.Listener {
-            override fun onIsPlayingChanged(isExoPlaying: Boolean) {
-                isPlaying = isExoPlaying
-            }
-        })
         while (true) {
             delay(200)
-            contentCurrentPosition = exoPlayer.currentPosition
+            contentCurrentPosition = player.currentPosition
+            isPlaying = player.isPlaying
         }
     }
 
 
-    LaunchedEffect(exoPlayer) {
-        // 为 ExoPlayer 添加监听器，用于同步弹幕播放状态和位置
-        exoPlayer.addListener(object : Player.Listener {
-            override fun onIsPlayingChanged(isPlaying: Boolean) {
-                super.onIsPlayingChanged(isPlaying)
-                // 如果弹幕可见性为 true
-                if (videoPlayerViewModel.danmakuVisibility) {
-                    if (isPlaying) {
-                        // 使用封装的方法获取当前配置并启动弹幕
-                        videoPlayerViewModel.danmakuConfig = getDanmakuConfig()
-                        mDanmakuPlayer.updateConfig(videoPlayerViewModel.danmakuConfig)
-                        mDanmakuPlayer.start()
-                        mDanmakuPlayer.seekTo(contentCurrentPosition)
-                    } else {
-                        // 暂停弹幕播放器
-                        mDanmakuPlayer.pause()
-                    }
-                }
+    LaunchedEffect(isPlayerPlaying) {
+        if (videoPlayerViewModel.danmakuVisibility) {
+            if (isPlayerPlaying) {
+                // 启动弹幕
+                videoPlayerViewModel.danmakuConfig = getDanmakuConfig()
+                mDanmakuPlayer.updateConfig(videoPlayerViewModel.danmakuConfig)
+                mDanmakuPlayer.start()
+                mDanmakuPlayer.seekTo(player.currentPosition)
+            } else {
+                mDanmakuPlayer.pause()
             }
+        }
+    }
+    // 2. 监听准备就绪状态处理历史记录
+    LaunchedEffect(playerStatus) {
+        if (playerStatus == VideoPlayerStatus.READY) {
+            isFirstLoad = false // 👇 新增：第一次准备好后，取消首次加载遮罩
+            videoPlayerViewModel.updatePlayerStatus(VideoPlayerStatus.READY)
 
-            override fun onCues(cueGroup: CueGroup) {
-                super.onCues(cueGroup)
-                currentCueGroup = cueGroup
+            if (historySeekPos > 0 && !hasTriggeredTimer) {
+                player.seekTo(historySeekPos)
+                showHistoryTip = true
+                hasTriggeredTimer = true
             }
-
-            override fun onPlayerErrorChanged(error: PlaybackException?) {
-                if (error != null) {
-                    Log.d("error", error.message.toString())
-                    videoPlayerViewModel.setPlayerError(error.message.toString())
-                }
-            }
-
-            override fun onPlaybackStateChanged(playbackState: Int) {
-                when (playbackState) {
-                    Player.STATE_READY -> {
-                        videoPlayerViewModel.updatePlayerStatus(VideoPlayerStatus.READY)
-                        // ✨ 核心改进：当视频真正准备好播放时，如果存在历史记录且还没触发过提示
-                        if (historySeekPos > 0 && !hasTriggeredTimer) {
-                            exoPlayer.seekTo(historySeekPos)
-                            showHistoryTip = true
-                            hasTriggeredTimer = true // 确保不会因为暂停/播放反复弹出
-                        }
-                    }
-
-                    Player.STATE_BUFFERING -> {
-                        videoPlayerViewModel.updatePlayerStatus(VideoPlayerStatus.BUFFERING)
-                    }
-
-                    Player.STATE_ENDED -> {
-                        videoPlayerViewModel.updatePlayerStatus(VideoPlayerStatus.ENDED)
-                    }
-
-                    Player.STATE_IDLE -> {
-                        // 不主动设置 IDLE 状态，避免覆盖错误状态（如网络失败后进入 IDLE）
-                        // 初始状态已在 ViewModel 中设为 IDLE，错误状态由 onPlayerErrorChanged 单独处理
-                        // videoPlayerViewModel.updatePlayerStatus(VideoPlayerStatus.IDLE)
-                    }
-
-                }
-            }
-
-            // 当播放位置发生不连续变化时 (如 Seek)
-            override fun onPositionDiscontinuity(
-                oldPosition: Player.PositionInfo,
-                newPosition: Player.PositionInfo,
-                reason: Int
-            ) {
-                super.onPositionDiscontinuity(oldPosition, newPosition, reason)
-                // 如果当前是暂停状态，同步弹幕播放器位置并暂停
-                if (!isPlaying) {
-                    mDanmakuPlayer.seekTo(newPosition.contentPositionMs)
-                    mDanmakuPlayer.pause()
-                    Log.d("newPosition", newPosition.contentPositionMs.toString())
-                }
-            }
-        })
+        } else if (playerStatus == VideoPlayerStatus.READY) {
+// 🔥 在这里关闭加载框
+            isFirstLoad = false
+            videoPlayerViewModel.updatePlayerStatus(playerStatus)
+        } else {
+            videoPlayerViewModel.updatePlayerStatus(playerStatus)
+        }
+    }
+    // 3. 设置错误回调
+    DisposableEffect(player) {
+        player.onError = { msg ->
+            videoPlayerViewModel.setPlayerError(msg)
+        }
+        player.onCuesChanged = { cues ->
+            currentCueGroup = cues as CueGroup?
+            // 处理字幕显示逻辑
+        }
+        onDispose {
+            player.onError = null
+            player.onCuesChanged = null
+        }
     }
     // 专门负责提示框的自动倒计时消失
 
@@ -530,7 +510,7 @@ fun VideoPlayerScreen(
         Modifier
             // 添加 D-Pad 事件处理
             .dPadEvents(
-                exoPlayer,
+                player,
                 videoPlayerState,
                 pulseState,
                 videoPlayerViewModel
@@ -598,15 +578,15 @@ fun VideoPlayerScreen(
 //                exoPlayer.release()
 //            }
 //        )
-        ContentFrame(
-            exoPlayer,
-            Modifier.fillMaxSize().align(Alignment.Center).onSizeChanged { size ->
-                    videoSizePx = size
-                    Log.d("playViewSize", videoSizePx.toString())
-                })
+        player.PlayerView(modifier = Modifier
+            .align(Alignment.Center)
+            .onSizeChanged { size ->
+                videoSizePx = size
+                Log.d("playViewSize", videoSizePx.toString())
+            })
 
         // 显示 SRT/PSG/ ASS(ASS暂时由PlayerView显示,SubtitleView不显示)
-        if (videoPlayerViewModel.isCusSubtitleViewVis) {
+        if (videoPlayerViewModel.isCusSubtitleViewVis && !useVlc) {
             // 字幕视图，显示 SRT/PSG/ASS 字幕 (从 CueGroup 中获取)
             SubtitleView(
                 cueGroup = currentCueGroup, // 传递当前字幕组
@@ -616,7 +596,8 @@ fun VideoPlayerScreen(
                     .padding(bottom = settingsState.subBottomPadding.dp), // 底部居中对齐(只影响srt字幕)
                 videoSizeDp = videoSizeDp,
                 backgroundColor = Color(settingsState.subBgColor),// 背景色(只影响srt字幕)
-                exoPlayer = exoPlayer,
+                sourceVideoHeight = player.videoHeight,
+                sourceVideoWidth = player.videoWidth,
                 forcePGSCenter = settingsState.forcePgsCenter
 
             )
@@ -658,7 +639,7 @@ fun VideoPlayerScreen(
                 VideoPlayerControls(
                     isPlaying, // 播放状态
                     contentCurrentPosition, // 当前位置
-                    exoPlayer, // ExoPlayer 实例
+                    player, // ExoPlayer 实例
                     videoPlayerState, // 播放器状态
                     focusRequester, // 焦点请求器
                     fileName, // 标题 (示例)
@@ -685,7 +666,7 @@ fun VideoPlayerScreen(
             Button(
                 modifier = Modifier.focusRequester(reRequester),
                 onClick = {
-                    exoPlayer.seekTo(0L)
+                    player.seekTo(0L)
                     reRequester.freeFocus()
                     showHistoryTip = false
 
@@ -787,39 +768,26 @@ fun VideoPlayerScreen(
             // 根据 ViewModel 中的选择显示不同的面板
             when (videoPlayerViewModel.selectedAorVorS) {
                 "A" -> AudioTrackPanel(
-                    videoPlayerViewModel.selectedAtIndex, // 当前选中的音频轨道索引
-                    onSelectedIndexChange = {
-                        videoPlayerViewModel.selectedAtIndex = it
-                    }, // 索引变化回调
-                    videoPlayerViewModel.mutableSetOfAudioTrackGroups, // 音频轨道组
-                    exoPlayer // ExoPlayer 实例
+                    lists = audioTracks, onTrackSelected = { track ->
+                        player.selectAudioTrack(track)
+                    }
+
                 )
 
-                "V" -> VideoTrackPanel(
-                    videoPlayerViewModel.selectedVtIndex, // 当前选中的视频轨道索引
-                    onSelectedIndexChange = {
-                        videoPlayerViewModel.selectedVtIndex = it
-                    }, // 索引变化回调
-                    videoPlayerViewModel.mutableSetOfVideoTrackGroups, // 视频轨道组
-                    exoPlayer // ExoPlayer 实例
-                )
+                "V" -> VideoTrackPanel(lists = videoTracks, onTrackSelected = { track ->
+                    player.selectVideoTrack(track)
+                })
 
                 "D" -> DanmakuPanel(
                     mDanmakuPlayer, // 弹幕播放器
                     videoPlayerViewModel,
-                    exoPlayer
                 )
 
                 else -> {
                     SubtitleTrackPanel(
-                        videoPlayerViewModel.selectedStIndex, // 当前选中的字幕轨道索引
-                        onSelectedIndexChange = {
-                            videoPlayerViewModel.selectedStIndex = it
-                        }, // 索引变化回调
-                        videoPlayerViewModel.mutableSetOfTextTrackGroups, // 字幕轨道组
-                        exoPlayer, // ExoPlayer 实例,
-                        mediaUri
-
+                        lists = subtitleTracks, onTrackSelected = { track ->
+                            player.selectSubtitleTrack(track)
+                        }
                     )
                 }
             }
@@ -829,35 +797,49 @@ fun VideoPlayerScreen(
             }
         }
 
-        // 显示缓冲状态 - 使用zIndex确保在视频上方但不影响底层渲染
-        if (playerStatus == VideoPlayerStatus.BUFFERING) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .zIndex(1f) // 确保在视频上方显示
-            ) {
-                LoadingScreen(
-                    "正在缓冲",
+        when (val status = playerStatus) {
+            is VideoPlayerStatus.Error -> {
+                Box(
                     modifier = Modifier
-                        .width(90.dp)
-                        .height(95.dp)
-                        .align(Alignment.Center)
-                        .background(
-                            Color.Black.copy(0.5f),
-                            shape = RoundedCornerShape(8.dp)
-                        ),
-                    fontSize = 16,
-                    36
-                )
+                        .fillMaxSize()
+                        .zIndex(2f) // 确保在最上层
+                        .background(Color.Black)
+                ) {
+                    VAErrorScreen((playerStatus as VideoPlayerStatus.Error).toString())
+                }
             }
-        }
 
-        // 显示加载状态 - 使用zIndex确保在视频上方但不影响底层渲染
-        if (playerStatus == VideoPlayerStatus.IDLE) {
+            is VideoPlayerStatus.BUFFERING -> {
+                // 显示播放中途的缓冲状态 (小窗)
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .zIndex(1f)
+                ) {
+                    LoadingScreen(
+                        "正在缓冲",
+                        modifier = Modifier
+                            .width(90.dp)
+                            .height(95.dp)
+                            .align(Alignment.Center)
+                            .background(
+                                Color.Black.copy(0.5f),
+                                shape = RoundedCornerShape(8.dp)
+                            ),
+                        fontSize = 16,
+                        36
+                    )
+                }
+            }
+
+            else -> {}
+        }
+        if (isFirstLoad) {
+            // 显示首次加载状态 (全屏)
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .zIndex(1f) // 确保在视频上方显示
+                    .zIndex(1f)
             ) {
                 LoadingScreen(
                     "正在加载中 请勿操作",
@@ -866,16 +848,10 @@ fun VideoPlayerScreen(
                         .background(Color.Black)
                 )
             }
-        } else if (playerStatus is VideoPlayerStatus.Error) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .zIndex(1f) // 确保在视频上方显示
-            ) {
-                VAErrorScreen((playerStatus as VideoPlayerStatus.Error).toString())
-            }
         }
     }
+
+
 }
 
 /**
@@ -926,14 +902,14 @@ fun NetworkSpeedIndicator(networkSpeed: Long, modifier: Modifier = Modifier) {
 /**
  * 为 Modifier 添加 D-Pad 事件处理
  *
- * @param exoPlayer ExoPlayer 实例
+ * @param IMzPlayer IMzPlayer 实例
  * @param videoPlayerState 视频播放器状态
  * @param pulseState 脉冲状态
  * @param videoPlayerViewModel ViewModel
  * @return 添加了事件处理的 Modifier
  */
 private fun Modifier.dPadEvents(
-    exoPlayer: ExoPlayer,
+    player: IMzPlayer, // 这里把 ExoPlayer 换成 IMzPlayer
     videoPlayerState: VideoPlayerState,
     pulseState: VideoPlayerPulseState,
     videoPlayerViewModel: VideoPlayerViewModel
@@ -942,67 +918,52 @@ private fun Modifier.dPadEvents(
         onLeft = {
             // 如果控制栏未显示，则快退
             if (!videoPlayerState.controlsVisible) {
-                exoPlayer.seekBack()
-                pulseState.setType(VideoPlayerPulse.Type.BACK) // 设置脉冲类型
+                player.seekBack() // 调用接口方法
+                pulseState.setType(VideoPlayerPulse.Type.BACK)
             }
         },
         onRight = {
             // 如果控制栏未显示，则快进
             if (!videoPlayerState.controlsVisible) {
-                exoPlayer.seekForward()
-                pulseState.setType(VideoPlayerPulse.Type.FORWARD) // 设置脉冲类型
+                player.seekForward() // 调用接口方法
+                pulseState.setType(VideoPlayerPulse.Type.FORWARD)
             }
         },
         onUp = {
-            // if (videoPlayerViewModel.atpFocus) videoPlayerState.showControls()
             if (!videoPlayerState.controlsVisible) {
                 videoPlayerViewModel.atpVisibility = true
                 videoPlayerViewModel.selectedAorVorS = "A"
             }
-        }, // 如果面板有焦点，显示控制栏
+        },
         onDown = {
-            //if (videoPlayerViewModel.atpFocus) videoPlayerState.showControls();
             if (!videoPlayerState.controlsVisible) {
                 videoPlayerViewModel.atpVisibility = true
                 videoPlayerViewModel.selectedAorVorS = "D"
             }
-        }, // 如果面板有焦点，显示控制栏
+        },
         onEnter = {
             // 暂停播放并显示控制栏
-            exoPlayer.pause()
+            player.pause() // 调用接口方法
             videoPlayerState.showControls()
         },
     )
     .onKeyEvent { keyEvent ->
+        // 这里的逻辑主要是控制 UI 显示隐藏，不涉及播放器具体实现，保持原样即可
         when (keyEvent.key) {
-            Key.Menu -> {
-                // 菜单键处理逻辑
+            Key.Menu, Key.ButtonY -> {
                 if (!videoPlayerState.controlsVisible && !videoPlayerViewModel.atpVisibility) {
                     videoPlayerState.showControls()
-                }
-                true // 消费事件
-            }
-
-            Key.ButtonY -> {
-                // 游戏手柄 Y 键（通常对应菜单键）
-                if (!videoPlayerState.controlsVisible && !videoPlayerViewModel.atpVisibility) {
-                    videoPlayerState.showControls()
-                }
-                true // 消费事件
+                    true
+                } else false
             }
 
             else -> {
-                // 检查原生键码
-                when (keyEvent.nativeKeyEvent.keyCode) {
-                    KeyEvent.KEYCODE_MENU -> {
-                        if (!videoPlayerState.controlsVisible && !videoPlayerViewModel.atpVisibility) {
-                            videoPlayerState.showControls()
-                        }
-                        true // 消费事件
-                    }
-
-                    else -> false
-                }
+                if (keyEvent.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_MENU) {
+                    if (!videoPlayerState.controlsVisible && !videoPlayerViewModel.atpVisibility) {
+                        videoPlayerState.showControls()
+                        true
+                    } else false
+                } else false
             }
         }
     }
@@ -1028,7 +989,7 @@ private fun Modifier.dPadEvents(
 fun VideoPlayerControls(
     isPlaying: Boolean,
     contentCurrentPosition: Long,
-    exoPlayer: ExoPlayer,
+    player: IMzPlayer,
     state: VideoPlayerState,
     focusRequester: FocusRequester,
     title: String, secondaryText: String, tertiaryText: String,
@@ -1040,9 +1001,9 @@ fun VideoPlayerControls(
     // 播放/暂停切换回调
     val onPlayPauseToggle = { shouldPlay: Boolean ->
         if (shouldPlay) {
-            exoPlayer.play()
+            player.play()
         } else {
-            exoPlayer.pause()
+            player.pause()
         }
     }
 
@@ -1162,9 +1123,9 @@ fun VideoPlayerControls(
                 state,
                 isPlaying,
                 onPlayPauseToggle,
-                onSeek = { exoPlayer.seekTo(exoPlayer.duration.times(it).toLong()) }, // Seek 回调
+                onSeek = { player.seekTo(player.duration.times(it).toLong()) }, // Seek 回调
                 contentProgress = contentCurrentPosition.milliseconds, // 当前进度
-                contentDuration = exoPlayer.duration.milliseconds // 总时长
+                contentDuration = player.duration.milliseconds // 总时长
             )
         },
         more = null // 更多按钮 (未实现)

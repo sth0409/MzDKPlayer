@@ -58,7 +58,8 @@ fun SubtitleView(
         fontSize = 22.sp
     ),
     backgroundColor: Color = Color.Black.copy(alpha = 0.0f),
-    exoPlayer: ExoPlayer,
+    sourceVideoWidth: Int,      // ← 新增
+    sourceVideoHeight: Int,     // ← 新增
     forcePGSCenter: Boolean = false
 ) {
     if (cueGroup == null || cueGroup.cues.isEmpty()) {
@@ -68,9 +69,9 @@ fun SubtitleView(
     val density = LocalDensity.current.density
     val textMeasurer = rememberTextMeasurer()
 
-    // 获取视频源的实际像素尺寸
-    val videoSourceWidth = exoPlayer.videoSize.width
-    val videoSourceHeight = exoPlayer.videoSize.height
+    // 直接使用传入的参数
+    val videoSourceWidth = sourceVideoWidth
+    val videoSourceHeight = sourceVideoHeight
 
     // 计算视频在容器中的实际显示尺寸和位置
     val displayedVideoRect = if (videoSourceWidth > 0 && videoSourceHeight > 0) {

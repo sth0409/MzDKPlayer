@@ -243,7 +243,6 @@ fun MultiSelectList(
 fun DanmakuPanel(
     danmakuPlayer: DanmakuPlayer,
     videoPlayerViewModel: VideoPlayerViewModel,
-    exoPlayer: ExoPlayer
 ) {
     val context = LocalContext.current
     val settingsManager = remember { DanmakuSettingsManager(context) }

@@ -3,7 +3,7 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
-    // alias(libs.plugins.kotlin.android)
+    //alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
 }
@@ -97,10 +97,18 @@ dependencies {
 //    implementation(libs.androidx.media3.exoplayer.dash)
     //implementation(libs.androidx.media3.ui)
     implementation(libs.androidx.media3.ui.compose)
+    implementation(libs.vlc.android.mini)
     implementation(files("libs/lib-decoder-ffmpeg-release.aar"))
    // implementation(files("libs/libvlc-release.aar"))
+    // 弹幕相关
+    implementation(files("libs/akdanmaku.aar"))
+    implementation(libs.ashley)
+    // Source: https://mvnrepository.com/artifact/com.badlogicgames.gdx/gdx-backend-android
+    implementation(libs.gdx.backend.android)
+    // Source: https://mvnrepository.com/artifact/com.badlogicgames.gdx/gdx
+    implementation(libs.gdx)
     implementation(libs.androidx.palette.ktx)
-    implementation(libs.akdanmaku)
+    //implementation(libs.akdanmaku)
     implementation(libs.accompanist.permissions)
     implementation(libs.smbj)
     implementation(libs.logback.android)

@@ -32,15 +32,7 @@ class VideoPlayerViewModel:ViewModel() {
     private val _playerStatus = MutableStateFlow<VideoPlayerStatus>(VideoPlayerStatus.IDLE)
     val playerStatus: StateFlow<VideoPlayerStatus> = _playerStatus.asStateFlow()
 
-    val mutableSetOfAudioTrackGroups = mutableListOf<Tracks.Group>()
-    val mutableSetOfVideoTrackGroups = mutableListOf<Tracks.Group>()
 
-    val mutableSetOfTextTrackGroups = mutableListOf<Tracks.Group>()
-    var selectedAtIndex by  mutableIntStateOf(0)
-    var selectedVtIndex by mutableIntStateOf(0)
-
-    var selectedStIndex by mutableIntStateOf(0)
-    var onTracksChangedState by  mutableIntStateOf(0)
 
     var isSubtitleViewVis by mutableIntStateOf(View.GONE)
 

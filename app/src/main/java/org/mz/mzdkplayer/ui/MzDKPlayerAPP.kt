@@ -17,6 +17,7 @@ import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
@@ -141,21 +142,7 @@ fun MzDKPlayerAPP(externalVideoUri: Uri?) {
             //}
         }
     }
-// 用于双击退出
-//    BackHandler {
-//        val currentDestination = mainNavController.currentDestination?.route
-//        if (currentDestination == "HomePage") {
-//            val currentTime = System.currentTimeMillis()
-//            if (currentTime - backPressedTime < backPressThreshold) {
-//                (context as? Activity)?.finishAffinity()
-//            } else {
-//                backPressedTime = currentTime
-//                Toast.makeText(context, "再按一次退出程序", Toast.LENGTH_SHORT).show()
-//            }
-//        } else {
-//            mainNavController.popBackStack()
-//        }
-//    }
+
     val smbListViewModel: SMBListViewModel = viewModel()
 
     // 使用工厂初始化 ViewModel
@@ -168,6 +155,7 @@ fun MzDKPlayerAPP(externalVideoUri: Uri?) {
 
     val mediaHistoryViewModel: MediaHistoryViewModel = viewModelWithFactory {RepositoryProvider.createMediaHistoryViewModel()  }
     val settingsVM: SettingsViewModel = viewModel()
+    val settingsState by settingsVM.uiState.collectAsState()
     NavHost(
         navController = mainNavController,
         startDestination = "MainPage",
@@ -350,16 +338,25 @@ fun MzDKPlayerAPP(externalVideoUri: Uri?) {
             val dataSourceType = backStackEntry.arguments?.getString("dataSourceType")
             val fileName = backStackEntry.arguments?.getString("fileName")
             val connectionName = backStackEntry.arguments?.getString("connectionName") ?: "未知"
+
+            // ============ 强制 VLC 判断逻辑 ============
+
             // 检查参数是否不为空，并渲染屏幕
             if (sourceUri != null && dataSourceType != null && fileName != null) {
-                Log.d("sourceUri", sourceUri)
-                Log.d("dataSourceType", dataSourceType)
+                //Log.d("sourceUri", sourceUri)
+                //Log.d("dataSourceType", dataSourceType)
+                val decodedUri = URLDecoder.decode(sourceUri, "UTF-8")
+                val extension = decodedUri.substringAfterLast('.').lowercase()
+                val forceVlcByExtension = extension in listOf("m2ts", "iso", "m2t", "mts")
+
+                val shouldUseVlc = forceVlcByExtension || (settingsState.defaultPlayer == "vlc")
                 VideoPlayerScreen(
-                    URLDecoder.decode(sourceUri, "UTF-8"),
+                    decodedUri,
                     dataSourceType,
                     URLDecoder.decode(fileName, "UTF-8"),
                     URLDecoder.decode(connectionName, "UTF-8"),
                     mediaHistoryViewModel,
+                    shouldUseVlc,
                     settingsVM
                 )
             }
@@ -499,7 +496,7 @@ fun MzDKPlayerAPP(externalVideoUri: Uri?) {
                         URLDecoder.decode(encodedIp, "UTF-8"),
                         URLDecoder.decode(encodedShareName, "UTF-8"),
 
-                    ),
+                        ),
                     settingsVM
                 )
             }

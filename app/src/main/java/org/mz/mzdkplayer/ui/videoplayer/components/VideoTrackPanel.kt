@@ -1,10 +1,12 @@
 package org.mz.mzdkplayer.ui.videoplayer.components
 
+import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
@@ -34,6 +36,7 @@ import androidx.tv.material3.ListItemDefaults
 import androidx.tv.material3.Text
 import kotlinx.coroutines.launch
 import org.mz.mzdkplayer.R // 确保 R.drawable.hdr_1 和 R.drawable.dolby_vision_seeklogo 等存在
+import org.mz.mzdkplayer.player.core.MzVideoTrack
 import org.mz.mzdkplayer.tool.focusOnInitialVisibility
 import java.util.Locale
 
@@ -42,17 +45,16 @@ import java.util.Locale
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun VideoTrackPanel(
-    selectedIndex: Int,
-    onSelectedIndexChange: (currentIndex: Int) -> Unit,
-    lists: MutableList<Tracks.Group>,
-    exoPlayer: ExoPlayer
+    lists: List<MzVideoTrack>, // 使用统一的模型
+    onTrackSelected: (MzVideoTrack) -> Unit
 ) {
     // ... (状态和修饰符保持不变)
     val focusRequester = remember { FocusRequester() }
     val isVis = remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
     val listState = rememberLazyListState()
-
+    //Log.d("MzVideoTrackList",lists.toString())
+    val selectedIndex = lists.indexOfFirst { it.isSelected }.takeIf { it >= 0 } ?: 0
     LazyColumn(
         modifier = Modifier
             .widthIn(200.dp, 500.dp)
@@ -77,69 +79,28 @@ fun VideoTrackPanel(
             }
         } else {
             // LazyColumn滚到到当前选择位置
+            // 找到选中的 index 用于自动滚动和打勾
+
             coroutineScope.launch {
                 listState.animateScrollToItem(index = selectedIndex)
             }
             items(lists.size) { index ->
-                val format = lists[index].getTrackFormat(0)
-                val videoCode = format.codecs.orEmpty()
-                val videoHeight = format.height
-                val videoBitmap = format.bitrate
+                val track = lists[index]
 
-
-                // *** 新增：安全地获取 ColorInfo 字段 ***
-                val colorInfo = format.colorInfo
-
-                // 使用 .getOrDefault(C.COLOR_TRANSFER_UNSET) 替代，但由于 UNSET 未解析，
-                // 我们直接从 colorInfo 检查。如果 colorInfo 为 null，我们视为 UNSET。
-                // 否则，取其内部值。
-                val colorTransfer = colorInfo?.colorTransfer ?: C.INDEX_UNSET // C.INDEX_UNSET通常是-1
-                val colorSpace = colorInfo?.colorSpace ?: C.INDEX_UNSET
-
-
-                // --- 轨道信息判断 ---
-                val isDolbyVision = videoCode.contains("dvh", ignoreCase = true)
-
-                // 使用 C.COLOR_TRANSFER_ST2084 代替 C.COLOR_TRANSFER_PQ
-                // ST2084 是 PQ 曲线的官方标准
-                val isHdr10 = (colorTransfer == C.COLOR_TRANSFER_ST2084 ||
-                        colorTransfer == C.COLOR_TRANSFER_HLG) &&
-                        colorSpace == C.COLOR_SPACE_BT2020 &&
-                        !isDolbyVision // 排除 DV
-
-                // 确定视频编码类型
-                val isHevc = videoCode.contains("hev", ignoreCase = true)
-                val isAvc = videoCode.contains("avc", ignoreCase = true)
-                val isAv1 = videoCode.contains("av0", ignoreCase = true)
-
-                // 构造轨道名称前缀
                 val qualityPrefix = when {
-                    isDolbyVision -> "杜比视界"
-                    isHdr10 -> "HDR" // 识别为 HDR10/HLG (非DV)
-                    // 使用垂直分辨率（videoHeight）来判断质量等级
-                    videoHeight >= 2160 -> "4K/UHD" // 标准 4K/UHD 高度为 2160P
-                    videoHeight >= 1440 -> "2K/1440P" // 增加 1440P 等级
-                    videoHeight >= 1080 -> "1080P"  // 标准 1080P 高度
-                    videoHeight >= 720 -> "720P"   // 标准 720P 高度
+                    track.isDolbyVision -> "杜比视界"
+                    track.isHdr10 -> "HDR"
+                    track.height >= 2160 -> "4K/UHD"
+                    track.height >= 1440 -> "2K/1440P"
+                    track.height >= 1080 -> "1080P"
+                    track.height >= 720 -> "720P"
                     else -> "标清"
                 }
 
                 ListItem(
-                    modifier = if (index == selectedIndex /*选中的获取焦点*/) {
-                        Modifier
-                            .padding(
-                                start = 15.dp,
-                                end = 15.dp,
-                                top = 10.dp,
-                                bottom = 10.dp
-                            )
-                            .focusOnInitialVisibility(isVis)
-                    } else Modifier.padding(
-                        start = 15.dp,
-                        end = 15.dp,
-                        top = 10.dp,
-                        bottom = 10.dp
-                    ),
+                    modifier = Modifier.padding(15.dp, 10.dp) .let {
+                        if (index == selectedIndex) it.focusOnInitialVisibility(isVis) else it
+                    },
                     selected = false,
                     colors = ListItemDefaults.colors(
                         containerColor = Color(0, 0, 0),
@@ -153,67 +114,34 @@ fun VideoTrackPanel(
                     ),
                     headlineContent = {
                         Text(
-                            "$qualityPrefix ${videoHeight}P " +
-                                    "${String.format(Locale.getDefault(), "%.1f", videoBitmap / 1000.0 / 1000.0)}Mbps"
+                            "$qualityPrefix " +
+                                    "${String.format(Locale.getDefault(), "%.1f", track.bitrate / 1000.0 / 1000.0)}Mbps"
                         )
                     },
                     leadingContent = if (selectedIndex == index) {
-                        {
-                            Icon(
-                                Icons.Filled.Check,
-                                contentDescription = "已选择",
-                            )
-                        }
+                        { Icon(Icons.Filled.Check, contentDescription = "已选择") }
                     } else null,
                     trailingContent = {
-                        // 1. 显示 DV 图标
-                        if (isDolbyVision) {
-                            Icon(
-                                painterResource(id = R.drawable.dolby_vision_seeklogo),
-                                contentDescription = "杜比视界",
-                                modifier = Modifier.height(38.dp).width(38.dp)
-                            )
-                        }
-                        // 2. 显示 HDR 图标 (如果不是 DV)
-                        else if (isHdr10) {
-                            Icon(
-                                painterResource(id = R.drawable.hdr_1),
-                                contentDescription = "HDR",
-                                modifier = Modifier.height(38.dp).width(38.dp)
-                            )
+                        if (track.isDolbyVision) {
+                            Icon(painterResource(id = R.drawable.dolby_vision_seeklogo), "杜比视界", Modifier.size(38.dp))
+                        } else if (track.isHdr10) {
+                            Icon(painterResource(id = R.drawable.hdr_1), "HDR", Modifier.size(38.dp))
                         }
 
-                        // 3. 显示编码格式图标
+                        val isHevc = track.codecs.contains("hev", true)
+                        val isAvc = track.codecs.contains("avc", true)
+                        val isAv1 = track.codecs.contains("av0", true)
+
                         if (isHevc) {
-                            Icon(
-                                painterResource(id = R.drawable.h265),
-                                contentDescription = "H.265/HEVC",
-                                modifier = Modifier.height(23.dp).width(46.dp)
-                            )
+                            Icon(painterResource(id = R.drawable.h265), "H.265/HEVC", Modifier.size(46.dp, 23.dp))
                         } else if (isAvc) {
-                            Icon(
-                                painterResource(id = R.drawable.h264),
-                                contentDescription = "H.264/AVC",
-                                modifier = Modifier.height(23.dp).width(46.dp)
-
-                            )
+                            Icon(painterResource(id = R.drawable.h264), "H.264/AVC", Modifier.size(46.dp, 23.dp))
                         } else if (isAv1) {
-                            Icon(
-                                painterResource(id = R.drawable.av1),
-                                contentDescription = "AV1",
-                                modifier = Modifier.height(23.dp).width(46.dp)
-                            )
+                            Icon(painterResource(id = R.drawable.av1), "AV1", Modifier.size(46.dp, 23.dp))
                         }
                     },
                     onClick = {
-                        onSelectedIndexChange(index)
-                        exoPlayer.trackSelectionParameters =
-                            exoPlayer.trackSelectionParameters.buildUpon().setOverrideForType(
-                                TrackSelectionOverride(
-                                    lists[index].mediaTrackGroup,
-                                    0
-                                )
-                            ).build()
+                        onTrackSelected(track) // 把选中的轨道丢给外层，Player会处理具体的切换逻辑
                     }
                 )
             }

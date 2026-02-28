@@ -7,6 +7,7 @@ import com.hierynomus.msfscc.FileAttributes
 import com.hierynomus.msfscc.fileinformation.FileIdBothDirectoryInformation
 import com.hierynomus.protocol.transport.TransportException
 import com.hierynomus.smbj.SMBClient
+import com.hierynomus.smbj.SmbConfig
 import com.hierynomus.smbj.auth.AuthenticationContext
 import com.hierynomus.smbj.connection.Connection
 import com.hierynomus.smbj.session.Session
@@ -19,6 +20,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.mz.mzdkplayer.data.model.FileConnectionStatus
+import java.util.concurrent.TimeUnit
 
 import kotlin.collections.forEach
 
@@ -76,8 +78,10 @@ class SMBConViewModel : ViewModel() {
                     withContext(Dispatchers.IO) {
                         _connectionStatus.value = FileConnectionStatus.Connecting
                         if (!isConnected()) {  // 避免重复连接
-                            client = SMBClient()
-
+                            val clientConfig = SmbConfig.builder()
+                                .withTimeout(15, TimeUnit.SECONDS) // 连接超时
+                                .build()
+                            client = SMBClient(clientConfig)
                             connection = client?.connect(ip)
                             val auth = AuthenticationContext(username, password.toCharArray(), null)
                             session = connection!!.authenticate(auth)

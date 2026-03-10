@@ -154,7 +154,7 @@ fun SettingsScreen(
                 // 根据分类加载具体内容
                 when (selectedCategory) {
                     SettingCategory.General -> item {
-                        GeneralSection(state, settingsVM)
+                        GeneralSection(state, settingsVM, context = context)
                     }
 
                     SettingCategory.Playback -> item {
@@ -211,7 +211,7 @@ fun CategoryItem(
 // --- 以下为拆分后的右侧具体设置内容块 ---
 
 @Composable
-fun GeneralSection(state: SettingsUiState, settingsVM: SettingsViewModel) {
+fun GeneralSection(state: SettingsUiState, settingsVM: SettingsViewModel,context: Context) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         SwitchSettingItem(
             title = "隐藏详情页",
@@ -225,11 +225,25 @@ fun GeneralSection(state: SettingsUiState, settingsVM: SettingsViewModel) {
             checked = state.hideNetworkSpeed,
             onCheckedChange = { settingsVM.toggleHideNetWorkSpeed(it) }
         )
+        ActionSettingItem(
+            title = "App语言",
+            value = formatAppLang(state.appLang),
+            onClick = {
+                val next = when(state.appLang){
+                    "" -> "zh"
+                    "zh" -> "en"
+                    "en" -> "ja"
+                    else -> ""
+                }
+                settingsVM.setAppLanguage(context,next)
+            }
+        )
     }
 }
 
 @Composable
 fun PlaybackSection(state: SettingsUiState, settingsVM: SettingsViewModel) {
+
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         ActionSettingItem(
             title = "音频首选语言",
@@ -556,4 +570,10 @@ fun parseBgColorName(color: Long): String = when (color) {
     else -> "自定义"
 }
 
-
+fun formatAppLang(code: String): String = when(code){
+    "" -> "Auto (System)"
+    "zh" -> "中文"
+    "en" -> "English"
+    "ja" -> "日本語"
+    else -> "Auto"
+}

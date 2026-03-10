@@ -1,10 +1,12 @@
 package org.mz.mzdkplayer.ui.screen.vm
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import org.mz.mzdkplayer.data.repository.SettingsRepository
+import org.mz.mzdkplayer.tool.LanguageManager
 
 // 简单的数据类用于 UI 状态
 data class SettingsUiState(
@@ -26,7 +28,8 @@ data class SettingsUiState(
     val ftp: Boolean = false,
     val nfs: Boolean = false,
     val local: Boolean = false,
-    val http: Boolean = false
+    val http: Boolean = false,
+    val appLang: String = ""
 )
 
 class SettingsViewModel : ViewModel() {
@@ -58,7 +61,8 @@ class SettingsViewModel : ViewModel() {
                 ftp = repo.enableFtp,
                 nfs = repo.enableNfs,
                 local = repo.enableLocal,
-                http = repo.enableHttp
+                http = repo.enableHttp,
+                appLang = repo.appLanguage
             )
         }
     }
@@ -80,7 +84,11 @@ class SettingsViewModel : ViewModel() {
         repo.defaultPlayer = kernel
         refreshState()
     }
-
+    fun setAppLanguage(context: Context, lang: String) {
+        repo.appLanguage = lang
+        LanguageManager.setLanguage(context, lang)
+        refreshState()
+    }
     // 刮削开关
     fun toggleSource(source: String, v: Boolean) {
         when(source) {

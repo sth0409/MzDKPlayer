@@ -46,7 +46,7 @@ object SettingsRepository {
     private const val KEY_SOURCE_NFS = "source_nfs"
     private const val KEY_SOURCE_LOCAL = "source_local"
     private const val KEY_SOURCE_HTTP = "source_http"
-
+    private const val KEY_APP_LANGUAGE = "app_language"
     // --- Getters & Setters ---
 
     // 常规
@@ -139,4 +139,7 @@ object SettingsRepository {
             v
         )
     }
+    var appLanguage: String
+        get() = prefs.getString(KEY_APP_LANGUAGE, "") ?: "" // "" = 跟随系统
+        set(value) = prefs.edit { putString(KEY_APP_LANGUAGE, value) }
 }

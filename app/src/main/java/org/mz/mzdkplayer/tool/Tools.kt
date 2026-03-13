@@ -37,6 +37,7 @@ import kotlin.math.log10
 import kotlin.math.pow
 import kotlin.text.contains
 import androidx.core.graphics.set
+import java.net.URLEncoder
 
 object Tools {
     fun extractFileExtension(fileName: String?): String {
@@ -753,6 +754,36 @@ object Tools {
         } catch (e: Exception) {
             e.printStackTrace()
             null
+        }
+    }
+
+    // 在 Tools.kt 中添加这个方法
+    fun encodeUrlForPlayer(path: String): String {
+        return try {
+            val protocolSeparator = "://"
+            if (path.contains(protocolSeparator)) {
+                val parts = path.split(protocolSeparator)
+                val protocol = parts[0]
+                val hostAndPath = parts[1]
+
+                val hostPathParts = hostAndPath.split("/", limit = 2)
+                val host = hostPathParts[0]
+                val pathPart = if (hostPathParts.size > 1) hostPathParts[1] else ""
+
+                // 核心修复：对路径部分进行标准编码，确保空格变成 %20，中文字符被正确转码
+                val encodedPath = pathPart.split("/").joinToString("/") { segment ->
+                    URLEncoder.encode(segment, "UTF-8").replace("+", "%20")
+                }
+
+                "$protocol$protocolSeparator$host/$encodedPath"
+            } else {
+                // 如果没有协议前缀的处理
+                path.split("/").joinToString("/") { segment ->
+                    URLEncoder.encode(segment, "UTF-8").replace("+", "%20")
+                }
+            }
+        } catch (e: Exception) {
+            path // 降级处理
         }
     }
 }

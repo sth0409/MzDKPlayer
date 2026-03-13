@@ -52,6 +52,7 @@ import org.mz.mzdkplayer.data.model.FTPConnection
 import org.mz.mzdkplayer.data.model.NFSConnection
 import org.mz.mzdkplayer.data.model.WebDavConnection
 import org.mz.mzdkplayer.di.RepositoryProvider
+import org.mz.mzdkplayer.tool.Tools.toSafeInt
 import org.mz.mzdkplayer.tool.viewModelWithFactory
 import org.mz.mzdkplayer.ui.audioplayer.AudioPlayerScreen
 
@@ -349,7 +350,7 @@ fun MzDKPlayerAPP(externalVideoUri: Uri?) {
                 val decodedUri = URLDecoder.decode(sourceUri, "UTF-8")
                 val extension = decodedUri.substringAfterLast('.').lowercase()
                 val forceVlcByExtension = extension in listOf("m2ts", "iso", "m2t", "mts")
-
+                Log.d("VideoPlayer", "✅ Decoded MRL（传给 VLC）: $decodedUri")   // ← 关键！
                 val shouldUseVlc = forceVlcByExtension || (settingsState.defaultPlayer == "vlc")
                 VideoPlayerScreen(
                     decodedUri,
@@ -448,6 +449,7 @@ fun MzDKPlayerAPP(externalVideoUri: Uri?) {
             val encodedPassword = backStackEntry.arguments?.getString("encodedPassword")
             val encodedShareName = backStackEntry.arguments?.getString("encodedShareName")
             val connectionName = backStackEntry.arguments?.getString("connectionName") ?: "未知"
+            val port = backStackEntry.arguments?.getString("port") ?: "21"
             //URLEncoder.encode(conn.shareName, "UTF-8")
             if (encodedIp != null) {
 
@@ -468,7 +470,7 @@ fun MzDKPlayerAPP(externalVideoUri: Uri?) {
                         "1",
                         connectionName,
                         ip = encodedIp,
-                        21,
+                        port.toSafeInt(21),
                         URLDecoder.decode(encodedUsername, "UTF-8"),
                         URLDecoder.decode(encodedPassword, "UTF-8"),
                         shareName = URLDecoder.decode(encodedShareName, "UTF-8"),

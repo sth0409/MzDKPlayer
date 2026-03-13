@@ -23,6 +23,7 @@ import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
 import javax.net.ssl.X509TrustManager
 import androidx.core.net.toUri
+import org.mz.mzdkplayer.tool.Tools
 import org.mz.mzdkplayer.tool.WebDavHttpClient
 import org.mz.mzdkplayer.tool.WebDavHttpClient.Companion.restrictedTrustOkHttpClient
 import java.net.URLEncoder
@@ -259,7 +260,16 @@ class WebDavConViewModel : ViewModel() {
             return ""
         }
     }
-
+//    fun buildProperFullUrl(
+//        authenticatedBase: String,   // 当前文件夹的 authenticatedUrl
+//        segment: String              // 文件名/文件夹名
+//    ): String {
+//        val base = authenticatedBase.trimEnd('/')
+//        val encodedSegment = Tools.encodePathSegment(
+//            segment.trimStart('/').trimEnd('/')
+//        )
+//        return "$base/$encodedSegment"
+//    }
     /**
      * 获取文件或文件夹的完整 URL
      * @param resourceName 文件或文件夹名
@@ -279,6 +289,7 @@ class WebDavConViewModel : ViewModel() {
         }
     }
 }
+
 
 data class WebDavFileItem(
     val name: String,

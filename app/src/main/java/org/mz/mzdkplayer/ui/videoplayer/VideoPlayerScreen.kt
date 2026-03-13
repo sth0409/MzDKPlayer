@@ -147,7 +147,7 @@ fun VideoPlayerScreen(
     // 1. 根据配置实例化解耦的 Player 内核
     val player: IMzPlayer = remember(useVlc, mediaUri) {
         if (useVlc) {
-            MzVlcPlayer(context, mediaUri,settingsViewModel=settingsViewModel)
+            MzVlcPlayer(context, mediaUri,dataSourceType=dataSourceType,settingsViewModel=settingsViewModel)
         } else {
             MzExoPlayer(context, mediaUri, dataSourceType, settingsViewModel)
         }

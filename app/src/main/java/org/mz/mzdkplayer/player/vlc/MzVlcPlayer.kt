@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import org.mz.mzdkplayer.player.core.IMzPlayer
 import org.mz.mzdkplayer.player.core.MzBasicTrack
 import org.mz.mzdkplayer.player.core.MzVideoTrack
+import org.mz.mzdkplayer.tool.Tools
 import org.mz.mzdkplayer.ui.screen.vm.SettingsViewModel
 
 import org.mz.mzdkplayer.ui.screen.vm.VideoPlayerStatus
@@ -26,6 +27,7 @@ import org.videolan.libvlc.util.VLCVideoLayout
 class MzVlcPlayer(
     private val context: Context,
     mediaUri: String,
+    dataSourceType: String,
     // 如果需要，可以把语言偏好也传进来
     private val preferredAudioLang: String? = null,
     private val preferredTextLang: String? = null,
@@ -85,9 +87,12 @@ class MzVlcPlayer(
         mediaPlayer.setAudioOutput("audiotrack")
    //    }
         // 设置事件监听器同步状态
-        val media = Media(libVLC, mediaUri.toUri()).apply {
+        Log.d("VLCPlayer", "mediaStr → $mediaUri")
+        Log.d("VLCPlayer", "mediaUri → ${mediaUri.toUri()}")
+        val vlcSafeUri = Tools.encodeUrlForPlayer(mediaUri)
+        val media = Media(libVLC, vlcSafeUri.toUri()).apply {
             setHWDecoderEnabled(true, true)
-            addOption(":codec=mediacodec_ndk")
+            //addOption(":codec=mediacodec_ndk")
 
 //            // 3. 只有开启直通时，才注入这些 Media Option
 //            if (!isPassthroughEnabled) {
@@ -108,6 +113,8 @@ class MzVlcPlayer(
         media.addOption(":network-caching=3000")
 
         mediaPlayer.media = media
+        // 3. ⭐️ 关键：在这里立即释放局部引用
+        media.release()
         setupEventListener()
 
     }
@@ -267,6 +274,7 @@ class MzVlcPlayer(
     override fun release() {
         mediaPlayer.stop()
         mediaPlayer.release()
+
         libVLC.release()
     }
 

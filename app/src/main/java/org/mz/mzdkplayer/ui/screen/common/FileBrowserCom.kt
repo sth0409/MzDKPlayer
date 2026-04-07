@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -98,7 +99,7 @@ fun MediaInfoLoading(){
         contentAlignment = Alignment.Center
     ) {
         Text(
-            "正在加载...",
+            stringResource(R.string.ui_label_loading_in_progress),
             color = Color.White,
             fontSize = 12.sp
         )
@@ -107,7 +108,7 @@ fun MediaInfoLoading(){
 @Composable
 fun MediaTitle(title: String?){
     Text(
-        title?:"未知标题",
+        title?: stringResource(R.string.ui_label_unknown_title),
         color = Color.White,
         fontWeight = FontWeight.Bold,
         fontSize = 18.sp, // 稍微减小字体
@@ -133,7 +134,7 @@ fun MediaReleaseDate(releaseDate: String?){
 @Composable
 fun MediaFocusedFileName(focusedFileName: String?){
     Text(
-        focusedFileName?:"未知文件名",
+        focusedFileName?:stringResource(R.string.ui_label_unknown_filename),
         color = Color.White,
         fontWeight = FontWeight.Bold,
         fontSize = 18.sp,

@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Button
 import androidx.tv.material3.Text
@@ -52,13 +53,13 @@ fun FilePermissionScreen() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             // Android 11+ 需要 MANAGE_EXTERNAL_STORAGE 权限
             if (Environment.isExternalStorageManager()) {
-                Text("已获得所有文件访问权限", color = Color.White)
+                Text(stringResource(R.string.ui_label_all_file_access_granted), color = Color.White)
                 // 这里可以放置你的应用内容
             } else {
-                Text("需要所有文件访问权限",color = Color.White)
+                Text(stringResource(R.string.ui_label_all_file_access_needed),color = Color.White)
                 Spacer(modifier = Modifier.height(16.dp))
                 MyIconButton(
-                    text = "请求存储权限",
+                    text = stringResource(R.string.ui_label_request_storage_permission),
                     icon = R.drawable.foldermanaged24dp,
                     onClick = {
                     requestManageStoragePermission(context)
@@ -68,21 +69,21 @@ fun FilePermissionScreen() {
         } else {
             // Android 10 及以下版本处理
             if (readPermissionState.status.isGranted && writePermissionState.status.isGranted) {
-                Text("已获得存储权限", color = Color.White)
+                Text(stringResource(R.string.ui_label_storage_permission_granted), color = Color.White)
                 // 这里可以放置你的应用内容
             } else {
                 val textToShow = if (readPermissionState.status.shouldShowRationale ||
                     writePermissionState.status.shouldShowRationale
                 ) {
-                    "应用需要存储权限来访问文件。请授予权限。"
+                    context.getString(R.string.ui_label_app_needs_storage_permission)
                 } else {
-                    "需要存储权限来访问文件"
+                    context.getString(R.string.ui_label_storage_permission_needed_for_files)
                 }
 
                 Text(textToShow, color = Color.White)
                 Spacer(modifier = Modifier.height(16.dp))
                 MyIconButton(
-                    text = "请求存储权限",
+                    text = stringResource(R.string.ui_label_request_storage_permission),
                     icon = R.drawable.foldermanaged24dp,
                     onClick = {
                     readPermissionState.launchPermissionRequest()
@@ -121,5 +122,5 @@ private fun requestManageStoragePermission(context: Context) {
             continue
         }
     }
-    Toast.makeText(context, "请在设置中手动开启权限", Toast.LENGTH_LONG).show()
+    Toast.makeText(context, context.getString(R.string.ui_label_manually_enable_permission_in_settings), Toast.LENGTH_LONG).show()
 }

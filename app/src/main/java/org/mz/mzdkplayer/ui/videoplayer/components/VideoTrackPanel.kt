@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -70,7 +71,7 @@ fun VideoTrackPanel(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "该文件无视频轨道",
+                        text = stringResource(R.string.ui_label_no_video_tracks_in_file),
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
                         fontSize = 20.sp
@@ -88,13 +89,13 @@ fun VideoTrackPanel(
                 val track = lists[index]
 
                 val qualityPrefix = when {
-                    track.isDolbyVision -> "杜比视界"
+                    track.isDolbyVision -> stringResource(R.string.ui_label_dolby_vision)
                     track.isHdr10 -> "HDR"
                     track.height >= 2160 -> "4K/UHD"
                     track.height >= 1440 -> "2K/1440P"
                     track.height >= 1080 -> "1080P"
                     track.height >= 720 -> "720P"
-                    else -> "标清"
+                    else -> stringResource(R.string.ui_label_standard_definition)
                 }
 
                 ListItem(

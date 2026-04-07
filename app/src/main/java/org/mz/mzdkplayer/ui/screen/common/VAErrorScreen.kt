@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -50,7 +51,7 @@ fun VAErrorScreen(errorText: String = "未知错误") {
 
                 // 主错误标题
                 Text(
-                    text = "出错了",
+                    text = stringResource(R.string.ui_label_something_went_wrong),
                     style = MaterialTheme.typography.headlineSmall, // 使用 Material3 标题样式
                     fontWeight = FontWeight.Bold, // 加粗
                     color = Color.White, // 使用主题文字颜色

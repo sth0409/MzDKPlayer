@@ -11,6 +11,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 
 import androidx.tv.material3.MaterialTheme
@@ -40,7 +41,7 @@ fun PerformanceTestScreen(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "数据库性能测试工具",
+            text = stringResource(R.string.ui_label_database_performance_test_tool),
             style = MaterialTheme.typography.headlineLarge,
             modifier = Modifier.padding(bottom = 40.dp)
         )
@@ -52,7 +53,7 @@ fun PerformanceTestScreen(
 
         // --- 插入数据按钮 ---
         MyIconButton(
-            text = "插入 50,000 条模拟数据",
+            text = stringResource(R.string.ui_label_insert_50000_dummy_records),
             icon = R.drawable.baseline_search_24, // 假设 R.drawable.ic_search 是一个通用图标
             onClick = { viewModel.startInsertion(50000) },
             enabled = !isInserting,
@@ -63,7 +64,7 @@ fun PerformanceTestScreen(
 
         // --- 清理数据库按钮 ---
         MyIconButton(
-            text = "清理所有缓存数据",
+            text = stringResource(R.string.ui_label_clear_all_cached_data),
             icon = R.drawable.close24dp, // 假设 R.drawable.ic_clear 是一个通用图标
             onClick = { viewModel.clearDatabase() },
             enabled = !isInserting,
@@ -74,7 +75,7 @@ fun PerformanceTestScreen(
 
         // --- 状态显示 ---
         Text(
-            text = "当前状态：$status",
+            text = stringResource(R.string.ui_label_current_status, status),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface
         )

@@ -48,6 +48,7 @@ import java.net.URLDecoder
 // 假设 MediaInfoExtractorFormFileName 已经在同一个包或正确导入
 import org.mz.mzdkplayer.tool.MediaInfoExtractorFormFileName
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.tv.material3.Icon
 import org.mz.mzdkplayer.di.RepositoryProvider
 import org.mz.mzdkplayer.tool.viewModelWithFactory
@@ -139,7 +140,7 @@ fun EditTMDBInfoScreen(
                     leadingIcon = {if (isSearchMovie) Icon(painterResource(R.drawable.check24dp), contentDescription = null) },
                     modifier = Modifier.padding(end = 8.dp)
                 ){
-                    Text("电影")
+                    Text(stringResource(R.string.ui_label_movies))
                 }
                 FilterChip(
                     selected = !isSearchMovie,
@@ -148,7 +149,7 @@ fun EditTMDBInfoScreen(
                     leadingIcon = { if (!isSearchMovie) Icon(painterResource(R.drawable.check24dp), contentDescription = null) },
                     modifier = Modifier.padding(end = 8.dp)
                 ){
-                    Text("剧集")
+                    Text(stringResource(R.string.ui_label_series))
                 }
             }
 
@@ -159,7 +160,7 @@ fun EditTMDBInfoScreen(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
-                        Text("季 (Season)", color = Color.LightGray, fontSize = 12.sp)
+                        Text(stringResource(R.string.ui_label_season), color = Color.LightGray, fontSize = 12.sp)
                         TvTextField(
                             value = seasonText,
                             onValueChange = { if (it.all { char -> char.isDigit() }) seasonText = it },
@@ -168,7 +169,7 @@ fun EditTMDBInfoScreen(
                         )
                     }
                     Column(modifier = Modifier.weight(1f).padding(start = 8.dp)) {
-                        Text("集 (Episode)", color = Color.LightGray, fontSize = 12.sp)
+                        Text(stringResource(R.string.ui_label_episode), color = Color.LightGray, fontSize = 12.sp)
                         TvTextField(
                             value = episodeText,
                             onValueChange = { if (it.all { char -> char.isDigit() }) episodeText = it },
@@ -178,7 +179,7 @@ fun EditTMDBInfoScreen(
                     }
                 }
                 Text(
-                    text = "* 请手动指定该文件对应的季数和集数，搜索结果仅用于确认剧集系列。",
+                    text = stringResource(R.string.ui_label_specify_season_episode_note),
                     color = Color.Gray,
                     fontSize = 10.sp,
                     lineHeight = 12.sp
@@ -189,14 +190,14 @@ fun EditTMDBInfoScreen(
 
             // 4. 搜索按钮
             MyIconButton(
-                text = "搜索TMDB",
+                text = stringResource(R.string.ui_label_search_tmdb),
                 icon = R.drawable.baseline_search_24, // 假设你有这个图标，如果没有可以用默认的
                 modifier = Modifier.fillMaxWidth(),
                 onClick = {
                     if (searchKeyword.isNotBlank()) {
                         movieViewModel.searchMediaManual(searchKeyword, isSearchMovie)
                     } else {
-                        Toast.makeText(context, "请输入关键词", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(R.string.ui_label_please_enter_keyword), Toast.LENGTH_SHORT).show()
                     }
                 }
             )
@@ -213,23 +214,26 @@ fun EditTMDBInfoScreen(
             when (val result = searchResults) {
                 is Resource.Loading -> {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("正在搜索...", color = Color.White)
+                        Text(stringResource(R.string.ui_label_searching), color = Color.White)
                     }
                 }
                 is Resource.Error -> {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("搜索失败: ${result.message}", color = Color.Red)
+                        Text(
+                            text = stringResource(R.string.ui_label_search_failed, result.message),
+                            color = Color.Red
+                        )
                     }
                 }
                 is Resource.Success -> {
                     val list = result.data
                     if (list.isEmpty()) {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text("未找到相关结果", color = Color.Gray)
+                            Text(stringResource(R.string.ui_label_no_related_results_found), color = Color.Gray)
                         }
                     } else {
                         Text(
-                            "搜索结果 (点击确认)",
+                            stringResource(R.string.ui_label_search_results_confirm),
                             color = Color.LightGray,
                             fontSize = 12.sp,
                             modifier = Modifier.padding(start = 8.dp, bottom = 8.dp)
@@ -253,7 +257,7 @@ fun EditTMDBInfoScreen(
                                             originalFileName = fileName
                                         )
 
-                                        Toast.makeText(context, "已修正为: ${item.title}", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(context, context.getString(R.string.ui_label_corrected_to,item.title), Toast.LENGTH_SHORT).show()
                                         //navController.popBackStack() // 返回上一页
                                     },
                                     colors = myListItemCoverColor(),
@@ -273,8 +277,8 @@ fun EditTMDBInfoScreen(
                                         item.title?.let { Text(it, maxLines = 1, overflow = TextOverflow.Ellipsis) }
                                     },
                                     supportingContent = {
-                                        val date = item.releaseDate ?: "未知日期"
-                                        val overview = item.overview.ifBlank { "暂无简介" }
+                                        val date = item.releaseDate ?: stringResource(R.string.ui_label_unknown_date)
+                                        val overview = item.overview.ifBlank {stringResource(R.string.ui_label_no_introduction_yet) }
                                         Column {
                                             Text(date, fontSize = 12.sp)
                                             Text(overview, maxLines = 2, overflow = TextOverflow.Ellipsis, fontSize = 10.sp)

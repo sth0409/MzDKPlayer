@@ -38,12 +38,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.tv.material3.ListItem
 import androidx.tv.material3.Text
+import org.mz.mzdkplayer.R
 import org.mz.mzdkplayer.ui.screen.common.ConOpPanel
 // --- 导入 FTP 相关的模型和 ViewModel ---
 import org.mz.mzdkplayer.ui.screen.common.ConnectionCard
@@ -107,7 +109,7 @@ fun FTPConListScreen(mainNavController: NavHostController) {
                 .padding().background(Color(0xFF121212)) // 深黑背景
         ) {
             // 标题
-            FCLMainTitle(mainNavController = mainNavController, "FTP文件共享", "FTPConScreen")
+            FCLMainTitle(mainNavController = mainNavController, stringResource(R.string.ui_label_ftp_file_sharing), "FTPConScreen")
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -158,10 +160,10 @@ fun FTPConListScreen(mainNavController: NavHostController) {
                                 },
                                 index = index,
                                 connectionCardInfo = ConnectionCardInfo(
-                                    name = conn.name ?: "未知",
-                                    address = conn.ip ?: "未知",
-                                    shareName = conn.shareName ?: "未知",
-                                    username = conn.username ?: "无",
+                                    name = conn.name ?: stringResource(R.string.ui_label_unknown),
+                                    address = conn.ip ?: stringResource(R.string.ui_label_unknown),
+                                    shareName = conn.shareName ?: stringResource(R.string.ui_label_unknown),
+                                    username = conn.username ?: stringResource(R.string.ui_label_none),
 
                                     ),
                                 onClick = {

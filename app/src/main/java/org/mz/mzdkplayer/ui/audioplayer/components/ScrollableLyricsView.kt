@@ -14,12 +14,14 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.tv.material3.Text
 import kotlinx.coroutines.launch
+import org.mz.mzdkplayer.R
 import kotlin.math.roundToInt
 import kotlin.text.ifEmpty
 import kotlin.time.Duration
@@ -67,8 +69,8 @@ fun ScrollableLyricsView(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "暂无歌词",
-                fontSize = 16.sp,
+                text = stringResource(R.string.ui_label_no_lyrics_yet),
+                fontSize = 20.sp,
                 color = Color.Gray,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth().padding(16.dp)

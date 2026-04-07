@@ -34,6 +34,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.res.stringResource
 
 
 import androidx.compose.ui.unit.dp
@@ -43,6 +44,7 @@ import androidx.navigation.NavHostController
 
 
 import kotlinx.coroutines.delay
+import org.mz.mzdkplayer.R
 import org.mz.mzdkplayer.ui.screen.common.ConOpPanel
 
 import org.mz.mzdkplayer.ui.screen.common.ConnectionCard
@@ -114,7 +116,7 @@ fun SMBConListScreen(mainNavController: NavHostController,smbListViewModel: SMBL
         )
         {
             // 标题
-            FCLMainTitle(mainNavController = mainNavController, "SMB文件共享", "SMBConScreen")
+            FCLMainTitle(mainNavController = mainNavController, stringResource(R.string.ui_label_smb_file_sharing), "SMBConScreen")
             // ====== 内容区域m ======
             Column(
                 modifier = Modifier
@@ -165,10 +167,10 @@ fun SMBConListScreen(mainNavController: NavHostController,smbListViewModel: SMBL
                                     }
                                 },
                                 connectionCardInfo = ConnectionCardInfo(
-                                    name = conn.name ?: "未知",
-                                    address = conn.ip ?: "未知",
-                                    shareName = conn.shareName ?: "未知",
-                                    username = conn.username ?: "无",
+                                    name = conn.name ?: stringResource(R.string.ui_label_unknown),
+                                    address = conn.ip ?:stringResource(R.string.ui_label_unknown),
+                                    shareName = conn.shareName ?: stringResource(R.string.ui_label_unknown),
+                                    username = conn.username ?: stringResource(R.string.ui_label_unknown),
                                 ),
                                 onClick = {
                                     Log.d("SMBConListScreen", conn.name.toString())

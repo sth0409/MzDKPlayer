@@ -19,12 +19,14 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.tv.material3.Icon
 import androidx.tv.material3.ListItem
 import androidx.tv.material3.ListItemDefaults
+import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import kotlinx.coroutines.launch
 import org.mz.mzdkplayer.R
@@ -59,7 +61,7 @@ fun AudioTrackPanel(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "该文件无音频轨道",
+                        text = stringResource(R.string.ui_label_no_audio_tracks_in_file),
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
                         fontSize = 20.sp
@@ -98,7 +100,14 @@ fun AudioTrackPanel(
                     overlineContent = {
                         val sampleRateText = String.format(Locale.getDefault(), "%.1f kHz", track.sampleRate / 1000.0)
                         // 注意：这里需要把你的 Tools.inferAudioFormatType 改造为接收 mimeType 字符串
-                        Text("${track.channelCount}声道 · ${Tools.inferAudioFormatType(track.mimeType)} · $sampleRateText")
+                        Text(
+                            text = stringResource(
+                                id = R.string.ui_label_audio_track_details,
+                                track.channelCount,                          // %1$d
+                                Tools.inferAudioFormatType(track.mimeType), // %2$s
+                                sampleRateText                               // %3$s
+                            )
+                        )
                     },
                     leadingContent = if (selectedIndex == index) {
                         { Icon(Icons.Filled.Check, contentDescription = "已选择") }

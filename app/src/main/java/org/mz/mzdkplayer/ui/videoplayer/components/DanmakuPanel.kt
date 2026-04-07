@@ -40,6 +40,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.tv.material3.Button
@@ -54,6 +55,7 @@ import androidx.tv.material3.Text
 
 import com.kuaishou.akdanmaku.ext.RETAINER_BILIBILI
 import com.kuaishou.akdanmaku.ui.DanmakuPlayer
+import org.mz.mzdkplayer.R
 import org.mz.mzdkplayer.data.model.DanmakuScreenRatio
 
 import org.mz.mzdkplayer.data.repository.DanmakuSettingsManager
@@ -355,7 +357,7 @@ fun DanmakuPanel(
         )
         {
             Text(
-                "弹幕开关",
+                stringResource(R.string.ui_label_danmaku_toggle),
                 color = Color(0xFFFFFFFF), // 纯白色文字
                 modifier = Modifier.padding(end = 8.dp)
             )
@@ -382,7 +384,7 @@ fun DanmakuPanel(
 
         // 弹幕显示区域标题
         Text(
-            "弹幕显示区域",
+           stringResource(R.string.ui_label_danmaku_display_area),
             color = Color(0xFFFFFFFF), // 纯白色文字
             modifier = Modifier
                 .padding(vertical = 8.dp)
@@ -453,7 +455,7 @@ fun DanmakuPanel(
                 // 当类型选择变化时，也触发更新
                 updateTrigger++
             },
-            title = "按类型过滤"
+            title =stringResource(R.string.ui_label_filter_by_type)
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -468,7 +470,7 @@ fun DanmakuPanel(
             },
             maxValue = 200,
             minValue = 10,
-            label = "弹幕字号"
+            label = stringResource(R.string.ui_label_danmaku_font_size)
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -483,7 +485,7 @@ fun DanmakuPanel(
             },
             maxValue = 100,
             minValue = 0,
-            label = "弹幕透明度"
+            label = stringResource(R.string.ui_label_danmaku_opacity)
         )
     }
 }

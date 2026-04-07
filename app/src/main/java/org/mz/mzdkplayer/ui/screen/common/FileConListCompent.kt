@@ -28,6 +28,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -89,7 +90,7 @@ fun FCLMainTitle(
                         color = Color.White
                     )
                     Text(
-                        text = if (!isLocalFile) "网络存储" else "本地存储",
+                        text = if (!isLocalFile) stringResource(R.string.ui_label_network_storage) else stringResource(R.string.ui_label_local_storage),
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color(0xFFB0B0B0) // 浅灰色
                     )
@@ -102,14 +103,14 @@ fun FCLMainTitle(
                     MyIconButton(
                         modifier = Modifier.padding(end = 12.dp),
                         onClick = { mainNavController.navigate(addTargetRouter) },
-                        text = "添加连接",
+                        text = stringResource(R.string.ui_label_add_connection),
                         icon = R.drawable.add24dp,
                     )
                 }
 
                 MyIconButton(
                     onClick = { /**TODO 转到设置帮助页面**/ },
-                    text = "帮助",
+                    text = stringResource(R.string.ui_label_help),
                     icon = R.drawable.help24,
                 )
             }
@@ -131,7 +132,7 @@ fun ConnectionListTitle(conSize: Int = 0) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = "已保存的连接 ($conSize)",
+            text = stringResource(R.string.ui_label_saved_connections,conSize),
             style = MaterialTheme.typography.titleLarge,
             color = Color.White,
             fontWeight = FontWeight.SemiBold
@@ -162,13 +163,13 @@ fun ConnectionListEmpty(poolText: String) {
                 modifier = Modifier.size(64.dp)
             )
             Text(
-                text = "暂无 $poolText 连接",
+                text = stringResource(R.string.ui_label_no_pool_connections,poolText),
                 color = Color(0xFF999999),
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Medium
             )
             Text(
-                text = "点击右上角按钮添加您的第一个 $poolText 连接",
+                text = stringResource(R.string.ui_label_add_first_pool_connection,poolText),
                 color = Color(0xFF777777),
                 fontSize = 14.sp,
                 textAlign = TextAlign.Center
@@ -275,18 +276,18 @@ fun ConnectionCard(
                     horizontalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
                     ConnectionInfoItem(
-                        label = "服务器",
+                        label = stringResource(R.string.ui_label_server),
                         value = connectionCardInfo.address
                     )
 
                     ConnectionInfoItem(
-                        label = "共享目录",
+                        label = stringResource(R.string.ui_label_shared_directory),
                         value = connectionCardInfo.shareName
                     )
 
                     if (connectionCardInfo.username.isNotEmpty()) {
                         ConnectionInfoItem(
-                            label = "用户名",
+                            label = stringResource(R.string.ui_label_username),
                             value = connectionCardInfo.username
                         )
                     }

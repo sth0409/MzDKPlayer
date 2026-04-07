@@ -1,6 +1,8 @@
 package org.mz.mzdkplayer.ui.screen.vm
 
+import android.content.Context
 import android.view.View
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
@@ -8,6 +10,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -22,6 +25,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import org.mz.mzdkplayer.R
 
 
 class VideoPlayerViewModel:ViewModel() {
@@ -107,24 +111,20 @@ class VideoPlayerViewModel:ViewModel() {
     }
 }
 // 播放状态密封类（你已定义，稍作补充）
-sealed class VideoPlayerStatus {
-    object IDLE : VideoPlayerStatus()
-    object BUFFERING : VideoPlayerStatus()
-    object READY : VideoPlayerStatus() // 建议加上 READY
-    object ENDED : VideoPlayerStatus() // 建议加上 ENDED
-    data class Error(val message: String) : VideoPlayerStatus()
-
-    // 用于 UI 显示的描述（可选）
-    override fun toString(): String {
-        return when (this) {
-            IDLE -> "正在初始化"
-            BUFFERING -> "正在缓冲..."
-            READY -> "播放中"
-            ENDED -> "播放结束"
-            is Error -> "播放出错: $message"
-        }
-    }
+sealed class VideoPlayerStatus(val resId: Int) {
+    object IDLE : VideoPlayerStatus(R.string.ui_label_initializing)
+    object BUFFERING : VideoPlayerStatus(R.string.ui_label_buffering)
+    object READY : VideoPlayerStatus(R.string.ui_label_playing)
+    object ENDED : VideoPlayerStatus(R.string.ui_label_playback_ended)
+    data class Error(val message: String) : VideoPlayerStatus(R.string.ui_label_playback_error)
 }
-
-
+fun VideoPlayerStatus.getDisplayString(context: Context): String = when (this) {
+    is VideoPlayerStatus.Error -> context.getString(resId, message)
+    else -> context.getString(resId)
+}
+@Composable
+fun VideoPlayerStatus.asDisplayString(): String = when (this) {
+    is VideoPlayerStatus.Error -> stringResource(resId, message)
+    else -> stringResource(resId)
+}
 

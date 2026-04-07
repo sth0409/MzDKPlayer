@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -52,7 +53,7 @@ fun LibraryEmpty(type: String ="movie", navController: NavController){
 
             // 标题
             Text(
-                text = when (type) {"movie"->"暂无电影信息" "tv"->"暂无TV剧信息" else -> "暂无音乐信息"},
+                text = when (type) {"movie"->stringResource(R.string.ui_label_no_movie_info_yet) "tv"->stringResource(R.string.ui_label_no_tv_show_info_yet) else -> stringResource(R.string.ui_label_no_music_info_yet)},
                 style = MaterialTheme.typography.headlineSmall, // 使用 Material3 标题样式
                 fontWeight = FontWeight.Bold, // 加粗
                 color = Color.White, // 使用主题文字颜色
@@ -61,7 +62,7 @@ fun LibraryEmpty(type: String ="movie", navController: NavController){
 
             //
             MyIconButton(
-                text = "去文件区添加",
+                text = stringResource(R.string.ui_label_go_to_file_section_to_add),
                 icon = when (type) {"movie","tv"->R.drawable.videoadd24dp
                     else -> {R.drawable.musicnoteadd_24dp}
                 },

@@ -38,12 +38,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.tv.material3.ListItem
 import androidx.tv.material3.Text
+import org.mz.mzdkplayer.R
 import org.mz.mzdkplayer.ui.screen.common.ConOpPanel
 // --- 导入 NFS 相关的模型和 ViewModel ---
 import org.mz.mzdkplayer.ui.screen.common.ConnectionCard
@@ -105,7 +107,7 @@ fun NFSConListScreen(mainNavController: NavHostController) {
                 .padding()
         ) {
             // 标题
-            FCLMainTitle(mainNavController = mainNavController, "NFS文件共享", "NFSConScreen")
+            FCLMainTitle(mainNavController = mainNavController, stringResource(R.string.ui_label_nfs_file_sharing), "NFSConScreen")
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -156,10 +158,10 @@ fun NFSConListScreen(mainNavController: NavHostController) {
                                     }
                                 },
                                 connectionCardInfo = ConnectionCardInfo(
-                                    name = conn.name ?: "未知",
-                                    address = conn.serverAddress ?: "未知",
-                                    shareName = conn.shareName ?: "未知",
-                                    username = "无",
+                                    name = conn.name ?: "--",
+                                    address = conn.serverAddress ?: "--",
+                                    shareName = conn.shareName ?: "--",
+                                    username = "--",
                                 ),
                                 onClick = {
                                     // 构建用于导航到 NFS 文件列表的参数

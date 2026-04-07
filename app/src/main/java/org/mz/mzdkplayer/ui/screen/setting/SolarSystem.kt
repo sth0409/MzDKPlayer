@@ -10,6 +10,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -20,7 +21,7 @@ import java.util.Locale
 import kotlin.collections.List
 import kotlin.math.cos
 import kotlin.math.sin
-
+import org.mz.mzdkplayer.R
 /**
  * 太阳系行星数据结构
  * @property name 行星名称
@@ -193,13 +194,14 @@ fun SolarSystem(modifier: Modifier = Modifier) {
             horizontalAlignment = Alignment.End
         ) {
             Text(
-                text = "时间流速: ${TIME_SCALE_FACTOR}x",
+                text = stringResource(R.string.ui_label_time_flow_rate, TIME_SCALE_FACTOR),
                 color = Color.White,
                 fontSize = 18.sp,
                 style = MaterialTheme.typography.titleMedium
             )
             Text(
-                text = String.format(Locale.getDefault(),"模拟天数: %.2f 天", simulatedDays),
+                // 直接传入字符串资源 ID 和对应的变量
+                text = stringResource(R.string.ui_label_simulated_days, simulatedDays),
                 color = Color.White.copy(alpha = 0.8f),
                 fontSize = 16.sp,
                 style = MaterialTheme.typography.bodySmall

@@ -38,12 +38,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.tv.material3.ListItem
 import androidx.tv.material3.Text
+import org.mz.mzdkplayer.R
 import org.mz.mzdkplayer.ui.screen.common.ConOpPanel
 // --- 导入 HTTP 相关的模型和 ViewModel ---
 import org.mz.mzdkplayer.ui.screen.common.ConnectionCard
@@ -106,7 +108,7 @@ fun HTTPLinkConListScreen(mainNavController: NavHostController) {
                 .padding()
         ) {
             // 标题
-            FCLMainTitle(mainNavController = mainNavController, "NGINX文件共享", "HTTPLinkConScreen")
+            FCLMainTitle(mainNavController = mainNavController, stringResource(R.string.ui_label_nginx_file_sharing), "HTTPLinkConScreen")
             Column(
                 modifier = Modifier
                     .fillMaxSize()

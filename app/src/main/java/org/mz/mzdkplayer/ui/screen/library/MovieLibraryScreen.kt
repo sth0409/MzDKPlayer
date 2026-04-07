@@ -37,6 +37,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -54,6 +55,7 @@ import androidx.tv.material3.Text
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import org.mz.mzdkplayer.R
 
 import org.mz.mzdkplayer.data.local.MediaCacheEntity
 import org.mz.mzdkplayer.ui.screen.common.LibraryEmpty
@@ -109,7 +111,7 @@ fun MovieLibraryScreen(
                     // 【核心修改】多个版本时，不弹窗，直接提示用户
                     Toast.makeText(
                         context,
-                        "检测到多个版本，请先点击进入版本选择界面，再长按对应文件进行修改",
+                        context.getString(R.string.ui_label_multiple_versions_detected),
                         Toast.LENGTH_SHORT
                     ).show()
 
@@ -296,7 +298,7 @@ fun MovieLibraryScreen(
 
                     ) {
                         Text(
-                            text = "电影库",
+                            text = stringResource(R.string.ui_label_movie_library),
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                         )
@@ -338,7 +340,7 @@ fun MovieLibraryScreen(
                             .height(260.dp) // 保持高度和上面 Spacer(320.dp) 一致
                             .padding(start = 56.dp, top = 20.dp)
                     ) {
-                        Text("电影库", style = MaterialTheme.typography.labelLarge, color = Color.Gray)
+                        Text(stringResource(R.string.ui_label_movie_library), style = MaterialTheme.typography.labelLarge, color = Color.Gray)
                     }
                 }
             }
@@ -352,7 +354,7 @@ fun MovieLibraryScreen(
                     .padding(bottom = 3.dp)
             ) {
                 Text(
-                    text = "长按遥控器OK键可以调出更多操作 向右滚动以查看更多内容 →",
+                    text = stringResource(R.string.ui_label_remote_control_tip),
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.White.copy(alpha = 0.5f), // 半透明
                     modifier = Modifier.align(Alignment.Center)
@@ -427,7 +429,7 @@ fun MovieVersionSelectionDialog(
             Column(modifier = Modifier.padding(24.dp).widthIn(max = 600.dp)
                 .height(400.dp),) {
                 Text(
-                    text = "$title - 选择版本",
+                    text = stringResource(R.string.ui_label_select_version_for_title,title),
                     style = MaterialTheme.typography.bodyLarge,
                     color = Color.White,
                     maxLines = 2,
@@ -436,13 +438,13 @@ fun MovieVersionSelectionDialog(
                 // --- 新增提示文字 ---
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = "提示：长按下方版本可修改该文件的 TMDB 信息",
+                    text = stringResource(R.string.ui_label_tip_modify_tmdb_info),
                     style = MaterialTheme.typography.labelMedium,
                     color = Color.LightGray // 使用主题色或淡蓝色强调
                 )
                 Spacer(modifier = Modifier.height(6.dp))
                 if (versions.isEmpty()) {
-                    Text("加载中...", color = Color.Gray)
+                    Text(stringResource(R.string.ui_label_loading), color = Color.Gray)
                 } else {
                     LazyColumn(
                         Modifier.weight(1f),

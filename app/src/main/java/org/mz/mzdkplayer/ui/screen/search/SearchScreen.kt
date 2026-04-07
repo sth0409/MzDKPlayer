@@ -27,6 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 
@@ -72,14 +73,14 @@ fun SearchScreen(
             TvTextField(
                 value = query,
                 onValueChange = { viewModel.onSearchQueryChanged(it) },
-                placeholder = "搜索电影、剧集...",
+                placeholder = stringResource(R.string.ui_label_search_movies_shows),
                 modifier = Modifier.weight(1f),
                 colors = myTTFColor(),
                 textStyle = TextStyle(color = Color.White),
             )
             Spacer(modifier = Modifier.width(16.dp))
             MyIconButton(
-                text = if (query.isNotEmpty()) "清空" else "搜索",
+                text = if (query.isNotEmpty()) stringResource(R.string.ui_label_clear) else stringResource(R.string.ui_label_search),
                 icon = if (query.isNotEmpty()) R.drawable.baseline_search_24 else R.drawable.baseline_search_24,
                 onClick = { if (query.isNotEmpty()) viewModel.onSearchQueryChanged("") }
             )
@@ -90,7 +91,7 @@ fun SearchScreen(
         // --- 结果展示区域 ---
         if (pagedItems.itemCount == 0 && query.isNotEmpty() && pagedItems.loadState.refresh is LoadState.NotLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("未找到相关内容", color = Color.Gray)
+                Text(stringResource(R.string.ui_label_no_results_found), color = Color.Gray)
             }
         } else {
             LazyVerticalGrid(

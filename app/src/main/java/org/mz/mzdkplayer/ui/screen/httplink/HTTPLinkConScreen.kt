@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -83,7 +84,7 @@ fun HTTPLinkConScreen(
             // 连接状态显示
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "HTTP Link 状态: ${connectionStatus.toString()}",
+                    text = stringResource(R.string.ui_label_http_link_status,connectionStatus.toString()),
                     color = Color.White,
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.widthIn(100.dp, 400.dp),
@@ -119,7 +120,7 @@ fun HTTPLinkConScreen(
                 value = shareName,
                 onValueChange = { shareName = it },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = "HTTPLink 共享路径 (e.g., /movies)",
+                placeholder = stringResource(R.string.ui_label_http_link_shared_path),
                 colors = myTTFColor(),
                 textStyle = TextStyle(color = Color.White),
             )
@@ -129,7 +130,7 @@ fun HTTPLinkConScreen(
                 value = aliasName,
                 modifier = Modifier.fillMaxWidth(),
                 onValueChange = { aliasName = it },
-                placeholder = "连接别名",
+                placeholder = stringResource(R.string.ui_label_connection_alias),
                 colors = myTTFColor(),
                 textStyle = TextStyle(color = Color.White),
             )
@@ -140,7 +141,7 @@ fun HTTPLinkConScreen(
             ) {
                 // 操作按钮 - 连接
                 MyIconButton(
-                    text = "测试连接",
+                    text = stringResource(R.string.ui_label_test_connection),
                     icon = R.drawable.check24dp,
                     modifier = Modifier
                         .weight(1f)
@@ -171,7 +172,7 @@ fun HTTPLinkConScreen(
 
                 // 操作按钮 - 保存连接 (假设你有 HTTPLinkListViewModel)
                 MyIconButton(
-                    text = "保存连接",
+                    text = stringResource(R.string.ui_label_save_connection),
                     icon = R.drawable.save24dp,
                     modifier = Modifier
                         .weight(1f)
@@ -185,23 +186,23 @@ fun HTTPLinkConScreen(
                             return@MyIconButton
                         }
                         if (!httpLinkConViewModel.isConnected()){
-                            Toast.makeText(context, "请先连接成功后再保存", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, context.getString(R.string.ui_label_save_after_successful_connection), Toast.LENGTH_SHORT).show()
                             return@MyIconButton
                         }
                         // 创建 HTTPLinkConnection 数据对象
                         val newConnection = HTTPLinkConnection(
                             id = UUID.randomUUID().toString(),
-                            name = aliasName.ifBlank { "未命名HTTP连接" },
+                            name = aliasName.ifBlank { context.getString(R.string.ui_label_unnamed_http_connection) },
                             serverAddress = serverAddress.trimEnd('/'),
                             shareName = if (!shareName.endsWith("/")) shareName.plus("/")  else shareName
                         )
                         // 假设 HTTPLinkListViewModel 有 addConnection 方法
                         if (httpLinkListViewModel.addConnection(newConnection)) {
-                            Toast.makeText(context, "HTTP Link 连接已保存", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, context.getString(R.string.ui_label_http_link_connection_saved), Toast.LENGTH_SHORT).show()
                         } else {
                             Toast.makeText(
                                 context,
-                                "保存失败，连接可能已存在",
+                                context.getString(R.string.ui_label_save_failed_connection_exists),
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
@@ -212,7 +213,7 @@ fun HTTPLinkConScreen(
 
             // 断开连接按钮
             MyIconButton(
-                text = "断开连接",
+                text = stringResource(R.string.ui_label_disconnect),
                 icon = R.drawable.linkoff24dp,
                 modifier = Modifier.fillMaxWidth(),
                 // 只有在已连接或连接出错时才允许断开
@@ -225,7 +226,7 @@ fun HTTPLinkConScreen(
 
             // 显示当前路径 (可选)
             Text(
-                text = "当前路径: ${serverAddress.trimEnd('/')}/${shareName.trimEnd('/').trimStart('/')}/${currentPath}",
+                text = "${stringResource(R.string.ui_label_http_current_path)} ${serverAddress.trimEnd('/')}/${shareName.trimEnd('/').trimStart('/')}/${currentPath}",
                 color = Color.LightGray,
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(top = 8.dp)
@@ -271,7 +272,7 @@ fun HTTPLinkConScreen(
                                                     )
                                                 Toast.makeText(
                                                     context,
-                                                    "点击了文件: $resourceName\nURL: $fileUrl",
+                                                    context.getString(R.string.ui_label_http_file_clicked,resourceName),
                                                     Toast.LENGTH_LONG // 长一些以便显示 URL
                                                 ).show()
 
@@ -316,7 +317,7 @@ fun HTTPLinkConScreen(
                 } else {
                     // Connected 但列表为空
                     Text(
-                        text = "目录为空",
+                        text = stringResource(R.string.ui_label_directory_empty),
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(16.dp),
@@ -326,7 +327,7 @@ fun HTTPLinkConScreen(
             } else if (connectionStatus is FileConnectionStatus.Connecting) {
                 // 显示连接中提示
                 Text(
-                    text = "正在连接...",
+                    text = stringResource(R.string.ui_label_connecting),
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(16.dp),
@@ -355,7 +356,7 @@ fun HTTPLinkConScreen(
              else {
                 // Disconnected 状态
                 Text(
-                    text = "请先连接 HTTP Link 服务器",
+                    text = stringResource(R.string.ui_label_connect_http_link_server_first),
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(16.dp),

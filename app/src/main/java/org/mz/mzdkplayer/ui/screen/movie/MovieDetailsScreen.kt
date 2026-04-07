@@ -57,6 +57,7 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -137,15 +138,15 @@ fun MovieDetailsScreen(
                     verticalArrangement = Arrangement.Center
                 ) {
                     LoadingScreenWithSub(
-                        text = "正在加载电影详情...",
+                        text = stringResource(R.string.ui_label_loading_movie_details),
                         modifier = Modifier
                             .fillMaxWidth()
                             .fillMaxHeight(0.7f),
-                        subtitle = "如果你不想看到详情页，可以在设置中设置不显示详情页"
+                        subtitle = stringResource(R.string.ui_label_tip_hide_details_page_in_settings)
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     MyIconButton(
-                        text = "立即播放",
+                        text = stringResource(R.string.ui_label_play_now),
                         icon = R.drawable.baseline_play_arrow_24,
                         modifier = Modifier,
                         onClick = { navController.navigate("VideoPlayer/$videoUriEncoder/$dataSourceType/$fileNameEncoder/$connectionNameEncoder") }
@@ -154,7 +155,7 @@ fun MovieDetailsScreen(
             }
 
             is Resource.Error -> ErrorView(
-                message = "加载失败",
+                message = stringResource(R.string.ui_label_loading_failed),
                 onPlayAnyway = { navController.navigate("VideoPlayer/$videoUriEncoder/$dataSourceType/$fileNameEncoder/$connectionNameEncoder") }
             )
         }
@@ -282,7 +283,7 @@ private fun MovieContent(
                             modifier = Modifier.offset(x = (-8).dp).focusRequester(titleFR)
                         ) {
                             Text(
-                                text = movie.title ?: "未知电影",
+                                text = movie.title ?: stringResource(R.string.ui_label_unknown_movie),
                                 style = MaterialTheme.typography.displaySmall.copy(
                                     shadow = Shadow(
                                         color = Color.Black.copy(alpha = 0.8f),
@@ -382,7 +383,7 @@ private fun MovieContent(
                                     overflow = TextOverflow.Ellipsis
                                 )
                                 Text(
-                                    text = "按确认键查看完整简介",
+                                    text = stringResource(R.string.ui_label_press_ok_for_full_summary),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = Color.White.copy(alpha = 0.6f),
                                     modifier = Modifier.padding(top = 8.dp)
@@ -394,7 +395,7 @@ private fun MovieContent(
 
                         // 播放按钮
                         MyIconButton(
-                            text = "立即播放",
+                            text = stringResource(R.string.ui_label_play_now),
                             icon = R.drawable.baseline_play_arrow_24,
                             modifier = Modifier
                                 .width(210.dp),
@@ -472,7 +473,7 @@ private fun AnimatedDownArrow() {
         modifier = Modifier.offset(y = dy.dp)
     ) {
         Text(
-            text = "更多信息",
+            text = stringResource(R.string.ui_label_more_information),
             style = MaterialTheme.typography.labelSmall,
             color = Color.White.copy(alpha = 0.5f)
         )
@@ -535,7 +536,7 @@ private fun MoviePosterSection(movie: MovieDetails) {
             // 右侧信息
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "电影海报",
+                    text = stringResource(R.string.ui_label_movie_poster),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFFCCCCCC)
@@ -543,7 +544,7 @@ private fun MoviePosterSection(movie: MovieDetails) {
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = movie.title ?: "未知电影",
+                    text = movie.title ?: stringResource(R.string.ui_label_unknown_movie),
                     style = MaterialTheme.typography.titleLarge,
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
@@ -585,7 +586,7 @@ private fun MovieAdditionalInfoSection(movie: MovieDetails) {
             modifier = Modifier.padding(24.dp)
         ) {
             Text(
-                text = "电影详情",
+                text = stringResource(R.string.ui_label_movie_details),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFFCCCCCC)
@@ -595,7 +596,7 @@ private fun MovieAdditionalInfoSection(movie: MovieDetails) {
             // 完整类型列表
             Row(verticalAlignment = Alignment.Top) {
                 Text(
-                    text = "类型: ",
+                    text = stringResource(R.string.ui_label_genre),
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.Gray,
                     modifier = Modifier.width(80.dp)
@@ -615,7 +616,7 @@ private fun MovieAdditionalInfoSection(movie: MovieDetails) {
             if (countries.isNotEmpty()) {
                 Row(verticalAlignment = Alignment.Top) {
                     Text(
-                        text = "制作国家: ",
+                        text = stringResource(R.string.ui_label_countries_of_origin),
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.Gray,
                         modifier = Modifier.width(80.dp)
@@ -632,7 +633,7 @@ private fun MovieAdditionalInfoSection(movie: MovieDetails) {
             // 状态
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "状态: ",
+                    text = stringResource(R.string.ui_label_status),
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.Gray,
                     modifier = Modifier.width(80.dp)
@@ -645,7 +646,7 @@ private fun MovieAdditionalInfoSection(movie: MovieDetails) {
             if (!movie.releaseDate.isNullOrEmpty()) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "上映日期: ",
+                        text = stringResource(R.string.ui_label_release_date),
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.Gray,
                         modifier = Modifier.width(80.dp)
@@ -702,19 +703,19 @@ private fun FileInformationSection(
             modifier = Modifier.padding(24.dp)
         ) {
             Text(
-                text = "媒体源文件",
+                text = stringResource(R.string.ui_label_media_source_file),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFFCCCCCC)
             )
             Spacer(modifier = Modifier.height(16.dp))
 
-            InfoRow(label = "文件名", value = fileName)
+            InfoRow(label = stringResource(R.string.ui_label_file_name), value = fileName)
             Spacer(modifier = Modifier.height(8.dp))
-            InfoRow(label = "数据源", value = dataSourceType)
+            InfoRow(label = stringResource(R.string.ui_label_data_source), value = dataSourceType)
             if (connectionName.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(8.dp))
-                InfoRow(label = "连接名", value = connectionName)
+                InfoRow(label = stringResource(R.string.ui_label_connection_name), value = connectionName)
             }
         }
     }
@@ -834,7 +835,7 @@ fun FullDescriptionDialog(
                     horizontalArrangement = Arrangement.End
                 ) {
                     MyIconButton(
-                        text = "关闭",
+                        text = stringResource(R.string.ui_label_close),
                         icon = R.drawable.baseline_play_arrow_24,
                         modifier = Modifier.width(120.dp),
                         onClick = onDismiss
@@ -852,7 +853,7 @@ fun ErrorView(message: String, onPlayAnyway: () -> Unit) {
             Text(message, color = Color.White)
             Spacer(modifier = Modifier.height(16.dp))
             MyIconButton(
-                text = "尝试直接播放",
+                text = stringResource(R.string.ui_label_try_direct_play),
                 icon = R.drawable.baseline_play_arrow_24,
                 onClick = onPlayAnyway,
             )

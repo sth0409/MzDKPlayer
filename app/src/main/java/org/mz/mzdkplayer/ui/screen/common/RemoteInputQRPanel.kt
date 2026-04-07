@@ -15,11 +15,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.MultiFormatWriter
+import org.mz.mzdkplayer.R
 import org.mz.mzdkplayer.tool.RemoteConfig
 import org.mz.mzdkplayer.tool.RemoteInputServer
 import org.mz.mzdkplayer.tool.Tools
@@ -50,7 +52,7 @@ fun RemoteInputQRPanel(
                 // 回调给父组件
                 onReceiveConfig(config)
                 // 可选：弹个吐司提示用户
-                Toast.makeText(context, "已接收手机配置", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(R.string.ui_label_mobile_config_received), Toast.LENGTH_SHORT).show()
             }
 
             if (result != null) {
@@ -61,10 +63,10 @@ fun RemoteInputQRPanel(
                 // 生成二维码
                 qrCodeBitmap = Tools.generateQRCode(url)
             } else {
-                errorMsg = "端口(9382+)被占用，无法启动服务"
+                errorMsg = context.getString(R.string.ui_label_port_occupied_cannot_start_service)
             }
         } else {
-            errorMsg = "未连接 WiFi 或无法获取 IP"
+            errorMsg = context.getString(R.string.ui_label_no_wifi_or_cannot_get_ip)
         }
 
         onDispose {
@@ -82,7 +84,7 @@ fun RemoteInputQRPanel(
     ) {
         if (qrCodeBitmap != null) {
             Text(
-                text = "手机扫码快速输入",
+                text = stringResource(R.string.ui_label_quick_input_via_mobile_qr_scan),
                 color = Color.White,
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(bottom = 16.dp)
@@ -103,14 +105,14 @@ fun RemoteInputQRPanel(
             }
 
             Text(
-                text = "或者浏览器访问: $serverUrl",
+                text = stringResource(R.string.ui_label_or_access_via_browser,serverUrl),
                 color = Color.LightGray,
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(top = 16.dp)
             )
 
             Text(
-                text = "手机与电视需在同一局域网",
+                text = stringResource(R.string.ui_label_mobile_and_tv_same_lan),
                 color = Color.Gray,
                 style = MaterialTheme.typography.labelSmall,
                 modifier = Modifier.padding(top = 4.dp)
@@ -119,7 +121,7 @@ fun RemoteInputQRPanel(
         } else {
             // 错误或加载状态
             Text(
-                text = errorMsg ?: "正在初始化服务...",
+                text = errorMsg ?: stringResource(R.string.ui_label_initializing_service),
                 color = if (errorMsg != null) Color.Red else Color.Gray,
                 style = MaterialTheme.typography.bodyMedium
             )

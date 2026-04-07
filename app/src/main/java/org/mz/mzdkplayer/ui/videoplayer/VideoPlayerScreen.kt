@@ -48,6 +48,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -89,6 +90,7 @@ import org.mz.mzdkplayer.tool.FtpDataSource
 import org.mz.mzdkplayer.tool.SmbDataSource
 import org.mz.mzdkplayer.tool.SmbUtils
 import org.mz.mzdkplayer.tool.SubtitleView
+import org.mz.mzdkplayer.tool.Tools.toSafeInt
 import org.mz.mzdkplayer.tool.WebDavDataSource
 import org.mz.mzdkplayer.tool.handleDPadKeyEvents
 
@@ -98,6 +100,7 @@ import org.mz.mzdkplayer.ui.screen.vm.MediaHistoryViewModel
 import org.mz.mzdkplayer.ui.screen.vm.SettingsViewModel
 import org.mz.mzdkplayer.ui.screen.vm.VideoPlayerStatus
 import org.mz.mzdkplayer.ui.screen.vm.VideoPlayerViewModel
+import org.mz.mzdkplayer.ui.screen.vm.asDisplayString
 import org.mz.mzdkplayer.ui.theme.myIconButtonColor
 import org.mz.mzdkplayer.ui.videoplayer.components.AkDanmakuPlayer
 import org.mz.mzdkplayer.ui.videoplayer.components.AudioTrackPanel
@@ -620,7 +623,7 @@ fun VideoPlayerScreen(
                     .padding(16.dp) // 内边距
             )
         }
-
+        val statusText = playerStatus.asDisplayString()
         // 视频播放器覆盖层 (包含控制按钮等)
         VideoPlayerOverlay(
             modifier = Modifier
@@ -643,7 +646,7 @@ fun VideoPlayerScreen(
                     videoPlayerState, // 播放器状态
                     focusRequester, // 焦点请求器
                     fileName, // 标题 (示例)
-                    playerStatus.toString(), // 副标题 (示例)
+                    statusText, // 副标题 (示例)
                     "2022/1/20", // 第三行文本 (示例)
                     videoPlayerViewModel, // ViewModel
                     mDanmakuPlayer, // 弹幕播放器
@@ -673,11 +676,16 @@ fun VideoPlayerScreen(
                 },
                 colors = myIconButtonColor()
             ) {
-                val minutes = (historySeekPos / 1000 / 60).toString().padStart(2, '0')
-                val seconds = (historySeekPos / 1000 % 60).toString().padStart(2, '0')
+                val minutes = (historySeekPos / 1000 / 60).toString().padStart(2, '0').toSafeInt(0)
+                val seconds = (historySeekPos / 1000 % 60).toString().padStart(2, '0').toSafeInt(0)
                 Text(
-                    text = "您上次看到 $minutes:$seconds 点击此处从头播放",
-                    fontSize = 14.sp
+                    text = stringResource(
+                        id = R.string.ui_label_resume_from_time,
+                        minutes,
+                        seconds
+                    ),
+                    fontSize = 14.sp,
+                     // 建议给提示语加点透明度，更符合电视端审美
                 )
             }
         }
@@ -817,7 +825,7 @@ fun VideoPlayerScreen(
                         .zIndex(1f)
                 ) {
                     LoadingScreen(
-                        "正在缓冲",
+                        stringResource(id = R.string.ui_label_buffering_now),
                         modifier = Modifier
                             .width(90.dp)
                             .height(95.dp)
@@ -842,7 +850,7 @@ fun VideoPlayerScreen(
                     .zIndex(1f)
             ) {
                 LoadingScreen(
-                    "正在加载中 请勿操作",
+                    stringResource(R.string.ui_label_loading_do_not_operate),
                     Modifier
                         .fillMaxSize()
                         .background(Color.Black)

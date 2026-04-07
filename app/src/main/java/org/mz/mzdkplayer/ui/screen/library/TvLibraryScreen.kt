@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -53,6 +54,7 @@ import androidx.tv.material3.Text
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import org.mz.mzdkplayer.R
 import org.mz.mzdkplayer.data.local.MediaCacheEntity
 import org.mz.mzdkplayer.ui.screen.common.LibraryEmpty
 import org.mz.mzdkplayer.ui.screen.common.LoadingScreen
@@ -235,7 +237,7 @@ fun TvLibraryScreen(
                             .padding(start = 56.dp, top = 20.dp)
                     ) {
                         Text(
-                            text = "电视剧库",
+                            text = stringResource(R.string.ui_label_tv_show_library),
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                         )
@@ -277,7 +279,7 @@ fun TvLibraryScreen(
                             .padding(start = 56.dp, top = 20.dp)
                     ) {
                         Text(
-                            "电视剧库",
+                            text = stringResource(R.string.ui_label_tv_show_library),
                             style = MaterialTheme.typography.labelLarge,
                             color = Color.Gray
                         )
@@ -293,7 +295,7 @@ fun TvLibraryScreen(
                     .padding(bottom = 3.dp)
             ) {
                 Text(
-                    text = "向右滚动以查看更多内容 →",
+                    text = stringResource(R.string.ui_label_scroll_right_for_more),
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.White.copy(alpha = 0.5f), // 半透明
                     modifier = Modifier.align(Alignment.Center)
@@ -369,7 +371,7 @@ fun EpisodeSelectionDialog(
         ) {
             Column(modifier = Modifier.padding(24.dp)) {
                 Text(
-                    text = "$title - 选择剧集",
+                    text = stringResource(R.string.ui_label_select_episode_for_title,title),
                     style = MaterialTheme.typography.headlineSmall,
                     color = Color.White,
                     fontWeight = FontWeight.Bold
@@ -377,14 +379,14 @@ fun EpisodeSelectionDialog(
                 // --- 新增提示文字 ---
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = "提示：长按下方剧集条目可修改该文件的 TMDB 信息",
+                    text = stringResource(R.string.ui_label_tip_long_press_edit_tmdb_info),
                     style = MaterialTheme.typography.labelMedium,
                     color = Color.LightGray // 使用主题色或淡蓝色强调
                 )
                 Spacer(modifier = Modifier.height(6.dp))
 
                 if (episodes.isEmpty()) {
-                    Text("加载中...", color = Color.Gray)
+                    Text(stringResource(R.string.ui_label_loading), color = Color.Gray)
                 } else {
                     LazyColumn(
                         Modifier.weight(1f),
@@ -400,12 +402,20 @@ fun EpisodeSelectionDialog(
                                 colors = myListItemCoverColor(),
                                 // headlineContent: 显示季集序号
                                 headlineContent = {
+                                    // 1. 先准备好剧集名称后缀（如果有名字，就加上 " · 名字"）
+                                    val episodeNameSuffix = if (!episode.episodeName.isNullOrEmpty()) {
+                                        " · ${episode.episodeName}"
+                                    } else {
+                                        ""
+                                    }
+                                    // 2. 使用 stringResource 填充
                                     Text(
-                                        text = "第 ${episode.seasonNumber} 季 第 ${episode.episodeNumber} 集 · ${
-                                            if (!episode.episodeName.isNullOrEmpty()) {
-                                                episode.episodeName
-                                            } else ""
-                                        }",
+                                        text = stringResource(
+                                            R.string.ui_label_episode_format,
+                                            episode.seasonNumber,
+                                            episode.episodeNumber,
+                                            episodeNameSuffix
+                                        ),
                                         fontWeight = FontWeight.Bold
                                     )
                                 },

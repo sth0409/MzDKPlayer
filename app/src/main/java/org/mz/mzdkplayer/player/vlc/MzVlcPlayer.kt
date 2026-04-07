@@ -57,9 +57,10 @@ class MzVlcPlayer(
         "--clock-synchro=0"
     ).apply {
         // 如果开启了直通，在全局参数里也加上支持
-//        if (isPassthroughEnabled) {
-//            add("--spdif")
-//        }
+        if (isPassthroughEnabled) {
+            add("--spdif")
+
+        }
         // VLC 的语言设置通常在初始化时通过参数传入
         preferredAudioLang?.let { add("--audio-language=$it") }
         preferredTextLang?.let { add("--sub-language=$it") }
@@ -92,6 +93,7 @@ class MzVlcPlayer(
     init {
 
         mediaPlayer.setAudioDigitalOutputEnabled(isPassthroughEnabled)
+        Log.e("VLCPlayer", "isPassthroughEnabled → ${isPassthroughEnabled.toString()}")
 //        if (isPassthroughEnabled) {
         mediaPlayer.setAudioOutput("audiotrack")
    //    }
@@ -105,10 +107,10 @@ class MzVlcPlayer(
             //addOption(":codec=mediacodec_ndk")
 
 //            // 3. 只有开启直通时，才注入这些 Media Option
-//            if (!isPassthroughEnabled) {
-////                addOption(":audio-passthrough=1")
-////                addOption(":spdif=hdmi")
-////                addOption(":audio-passthrough=hdmi")
+//            if (isPassthroughEnabled) {
+//                addOption(":audio-passthrough=1")
+//                addOption(":spdif=hdmi")
+//                addOption(":audio-passthrough=hdmi")
 ////                addOption(":http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
 //                // 注意：如果电视不支持 TrueHD，VLC 只要看到这几个参数就会尝试透传
 //                // 如果透传失败就会没声音。目前最稳妥是让用户在设置里切开关。

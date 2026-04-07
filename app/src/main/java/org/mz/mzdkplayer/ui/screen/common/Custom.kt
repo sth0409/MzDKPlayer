@@ -1,6 +1,8 @@
 package org.mz.mzdkplayer.ui.screen.common
 
+import android.content.Context
 import android.view.KeyEvent
+import android.widget.Toast
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -206,6 +208,12 @@ fun MyIconButton(
             ) else MaterialTheme.typography.titleSmall
         )
     }
+
+
+}
+
+fun showToast(context: Context, message: String, duration: Int = Toast.LENGTH_SHORT) {
+    Toast.makeText(context, message, duration).show()
 }
 
 

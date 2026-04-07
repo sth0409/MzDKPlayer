@@ -45,6 +45,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -143,14 +144,14 @@ fun TVSeriesDetailsScreen(
                     verticalArrangement = Arrangement.Center
                 ) {
                     LoadingScreenWithSub(
-                        text = "正在加载剧集信息...",
+                        text = stringResource(R.string.ui_label_loading_tv_series_info),
                         modifier = Modifier
                             .fillMaxWidth()
                             .fillMaxHeight(0.7f),
-                        subtitle = "如果你不想看到详情页，可以在设置中设置不显示详情页"
+                        subtitle = stringResource(R.string.ui_label_tip_hide_details_page_in_settings)
                     )
                     MyIconButton(
-                        text = "立即播放",
+                        text =stringResource(R.string.ui_label_play_now),
                         icon = R.drawable.baseline_play_arrow_24,
                         modifier = Modifier,
                         onClick = { navController.navigate("VideoPlayer/$videoUriEncoder/$dataSourceType/$fileNameEncoder/$connectionNameEncoder") }
@@ -159,7 +160,7 @@ fun TVSeriesDetailsScreen(
             }
 
             is Resource.Error -> ErrorView(
-                message = "剧集加载失败: ${result.message}",
+                message = stringResource(R.string.ui_label_tv_series_loading_failed,result.message),
                 onPlayAnyway = { navController.navigate("VideoPlayer/$videoUriEncoder/$dataSourceType/$fileNameEncoder/$connectionNameEncoder") }
             )
 
@@ -402,7 +403,7 @@ private fun TVSeriesContent(
                         ) {
                             Column(modifier = Modifier.padding(8.dp)) {
                                 Text(
-                                    text = tvSeries.overview ?: "暂无简介",
+                                    text = tvSeries.overview ?: stringResource(R.string.ui_label_no_introduction_yet),
                                     style = MaterialTheme.typography.bodyLarge.copy(
                                         shadow = Shadow(color = Color.Black, blurRadius = 4f)
                                     ),
@@ -412,7 +413,7 @@ private fun TVSeriesContent(
                                     overflow = TextOverflow.Ellipsis
                                 )
                                 Text(
-                                    text = "按确认键查看完整简介",
+                                    text = stringResource(R.string.ui_label_press_ok_for_full_summary),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = Color.White.copy(alpha = 0.6f),
                                     modifier = Modifier.padding(top = 8.dp)
@@ -423,10 +424,12 @@ private fun TVSeriesContent(
                         Spacer(modifier = Modifier.height(20.dp))
 
                         // 播放按钮
-                        val buttonText = if (currentSeason > 0 && currentEpisode > 0)
-                            "播放 S${currentSeason} E${currentEpisode}"
-                        else
-                            "立即播放"
+                        val buttonText = if (currentSeason > 0 && currentEpisode > 0) {
+                            // 传入 ID 和两个参数：Season 和 Episode
+                            stringResource(R.string.ui_label_play_season_episode, currentSeason, currentEpisode)
+                        } else {
+                            stringResource(R.string.ui_label_play_now)
+                        }
 
                         MyIconButton(
                             text = buttonText,
@@ -459,7 +462,7 @@ private fun TVSeriesContent(
                 ) {
                     // 当前播放信息
                     Text(
-                        text = "当前播放信息",
+                        text = stringResource(R.string.ui_label_current_playback_info),
                         style = MaterialTheme.typography.headlineSmall,
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
@@ -478,7 +481,7 @@ private fun TVSeriesContent(
                                 )
                             }
                             is Resource.Loading -> {
-                                Text("加载单集详情中...", color = Color.Gray)
+                                Text(stringResource(R.string.ui_label_loading_episode_details), color = Color.Gray)
                             }
                             else -> {}
                         }
@@ -508,7 +511,7 @@ private fun TVSeriesContent(
     if (showFullDescDialog) {
         FullDescriptionDialog(
             title = tvSeries.name ?: "",
-            overview = tvSeries.overview ?: "暂无内容",
+            overview = tvSeries.overview ?:stringResource(R.string.ui_label_no_content_available),
             onDismiss = { showFullDescDialog = false }
         )
     }
@@ -534,7 +537,7 @@ private fun SeriesAdditionalInfoSection(tvSeries: TVSeriesDetails) {
             modifier = Modifier.padding(24.dp)
         ) {
             Text(
-                text = "剧集详情",
+                text = stringResource(R.string.ui_label_tv_series_details),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFFCCCCCC)
@@ -544,13 +547,17 @@ private fun SeriesAdditionalInfoSection(tvSeries: TVSeriesDetails) {
             // 完整季数/集数
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "季数/集数: ",
+                    text = stringResource(R.string.ui_label_seasons_episodes),
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.Gray,
                     modifier = Modifier.width(100.dp)
                 )
                 Text(
-                    text = "${tvSeries.numberOfSeasons} 季  ${tvSeries.numberOfEpisodes} 集",
+                    text = stringResource(
+                        id = R.string.ui_label_seasons_episodes_summary,
+                        tvSeries.numberOfSeasons?:0,
+                        tvSeries.numberOfEpisodes?:0
+                    ),
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.LightGray
                 )
@@ -560,7 +567,7 @@ private fun SeriesAdditionalInfoSection(tvSeries: TVSeriesDetails) {
             // 完整类型列表
             Row(verticalAlignment = Alignment.Top) {
                 Text(
-                    text = "类型: ",
+                    text = stringResource(R.string.ui_label_genre),
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.Gray,
                     modifier = Modifier.width(100.dp)
@@ -580,7 +587,7 @@ private fun SeriesAdditionalInfoSection(tvSeries: TVSeriesDetails) {
             if (countries.isNotEmpty()) {
                 Row(verticalAlignment = Alignment.Top) {
                     Text(
-                        text = "制作国家: ",
+                        text = stringResource(R.string.ui_label_countries_of_origin),
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.Gray,
                         modifier = Modifier.width(100.dp)
@@ -596,7 +603,7 @@ private fun SeriesAdditionalInfoSection(tvSeries: TVSeriesDetails) {
             // 状态
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "状态: ",
+                    text = stringResource(R.string.ui_label_status),
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.Gray,
                     modifier = Modifier.width(100.dp)
@@ -624,7 +631,7 @@ private fun AnimatedDownArrow() {
         modifier = Modifier.offset(y = dy.dp)
     ) {
         Text(
-            text = "更多信息",
+            text = stringResource(R.string.ui_label_more_information),
             style = MaterialTheme.typography.labelSmall,
             color = Color.White.copy(alpha = 0.5f)
         )
@@ -660,19 +667,19 @@ private fun FileInformationSection(
             modifier = Modifier.padding(24.dp)
         ) {
             Text(
-                text = "媒体源文件",
+                text = stringResource(R.string.ui_label_media_source_file),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFFCCCCCC)
             )
             Spacer(modifier = Modifier.height(16.dp))
 
-            InfoRow(label = "文件名", value = fileName)
+            InfoRow(label = stringResource(R.string.ui_label_file_name), value = fileName)
             Spacer(modifier = Modifier.height(8.dp))
-            InfoRow(label = "数据源", value = dataSourceType)
+            InfoRow(label =  stringResource(R.string.ui_label_data_source), value = dataSourceType)
             if (connectionName.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(8.dp))
-                InfoRow(label = "连接名", value = connectionName)
+                InfoRow(label = stringResource(R.string.ui_label_connection_name), value = connectionName)
             }
         }
     }
@@ -715,7 +722,7 @@ private fun CurrentEpisodeInfoSection(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = "正在播放",
+                text = stringResource(R.string.ui_label_playing_now),
                 style = MaterialTheme.typography.labelMedium,
                 color = Color(0xFF12EA89),
                 fontWeight = FontWeight.Bold
@@ -771,11 +778,19 @@ private fun CurrentEpisodeInfoSection(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
 
-                val runtimeText = if (details.runtime != null && details.runtime > 0)
-                    "  |  ${details.runtime} min" else ""
+                // 1. 获取基础日期文案
+                val airDateText = stringResource(R.string.ui_label_air_date, details.airDate ?: "N/A")
 
+                // 2. 根据条件获取运行时文案（如果 runtime 为空则为空字符串）
+                val runtimeSuffix = if (details.runtime != null && details.runtime > 0) {
+                    stringResource(R.string.ui_label_runtime_suffix, details.runtime)
+                } else {
+                    ""
+                }
+
+                // 3. 在 Text 中显示
                 Text(
-                    text = "放送日期: ${details.airDate}$runtimeText",
+                    text = "$airDateText$runtimeSuffix",
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.LightGray
                 )
@@ -808,7 +823,7 @@ private fun CurrentEpisodeInfoSection(
                                 horizontalArrangement = Arrangement.Center
                             ) {
                                 Text(
-                                    text = "显示单集简介 (可能涉及剧透)",
+                                    text = stringResource(R.string.ui_label_show_episode_summary_spoiler),
                                     color = Color.Gray,
                                     style = MaterialTheme.typography.bodyMedium
                                 )
@@ -817,7 +832,7 @@ private fun CurrentEpisodeInfoSection(
                     }
                 } else {
                     Text(
-                        text = "暂无本集简介",
+                        text = stringResource(R.string.ui_label_no_episode_summary_available),
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.Gray.copy(alpha = 0.5f)
                     )

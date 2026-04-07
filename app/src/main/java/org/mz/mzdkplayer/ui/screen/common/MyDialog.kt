@@ -25,6 +25,7 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.tv.material3.MaterialTheme
@@ -88,7 +89,7 @@ fun MyFileDialog(
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 MyIconButton(
-                    text = "修改文件对应影视信息",
+                    text = stringResource(R.string.ui_label_modify_file_media_info),
                     modifier = Modifier.fillMaxWidth(),
                     icon = R.drawable.save24dp,
                     onClick = {
@@ -99,18 +100,18 @@ fun MyFileDialog(
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 MyIconButton(
-                    text = "删除文件对应影视信息",
+                    text = stringResource(R.string.ui_label_delete_file_media_info),
                     modifier = Modifier.fillMaxWidth(),
                     icon = R.drawable.delete24dp,
                     onClick = {
                         if (allowClick) {
-                            Toast.makeText(context, "点击删除", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, context.getString(R.string.ui_label_click_to_delete), Toast.LENGTH_SHORT).show()
                         }
                     }
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 MyIconButton(
-                    text = "关闭弹窗",
+                    text = context.getString(R.string.ui_label_close_popup),
                     modifier = Modifier.fillMaxWidth(),
                     icon = R.drawable.close24dp,
                     onClick = {

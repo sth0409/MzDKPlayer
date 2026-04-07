@@ -28,6 +28,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -92,7 +93,7 @@ fun SMBConScreen(smbListViewModel: SMBListViewModel = viewModel()) {
         {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "SMB 状态: $connectionStatus",
+                    text = stringResource(R.string.ui_label_smb_connection_status,connectionStatus.toString()),
                     color = Color.White,
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.widthIn(100.dp, 400.dp),
@@ -118,7 +119,7 @@ fun SMBConScreen(smbListViewModel: SMBListViewModel = viewModel()) {
                 value = ip,
                 onValueChange = { ip = it },
                 modifier = Modifier.fillMaxWidth(1f),
-                placeholder = "服务器地址",
+                placeholder = stringResource(R.string.ui_label_server_address),
                 colors = myTTFColor(),
             )
 
@@ -126,7 +127,7 @@ fun SMBConScreen(smbListViewModel: SMBListViewModel = viewModel()) {
                 value = username,
                 onValueChange = { username = it },
                 modifier = Modifier.fillMaxWidth(1f),
-                placeholder = "用户名",
+                placeholder = stringResource(R.string.ui_label_username),
                 colors = myTTFColor(),
                 textStyle = TextStyle(color = Color.White),
             )
@@ -136,7 +137,7 @@ fun SMBConScreen(smbListViewModel: SMBListViewModel = viewModel()) {
                 onValueChange = { password = it },
                 modifier = Modifier.fillMaxWidth(1f),
                 colors = myTTFColor(),
-                placeholder = "密码",
+                placeholder = stringResource(R.string.ui_label_password),
 
                 textStyle = TextStyle(color = Color.White),
             )
@@ -145,7 +146,7 @@ fun SMBConScreen(smbListViewModel: SMBListViewModel = viewModel()) {
                 value = aliasName,
                 onValueChange = { aliasName = it },
                 modifier = Modifier.fillMaxWidth(1f),
-                placeholder = "别名",
+                placeholder = stringResource(R.string.ui_label_connection_alias),
                 colors = myTTFColor(),
                 textStyle = TextStyle(color = Color.White),
             )
@@ -159,13 +160,13 @@ fun SMBConScreen(smbListViewModel: SMBListViewModel = viewModel()) {
                     }
                 },
                 modifier = Modifier.fillMaxWidth(1f),
-                placeholder = "分享名称（不能以'/'开头）",
+                placeholder = stringResource(R.string.ui_label_share_name_no_leading_slash),
                 colors = myTTFColor(),
                 textStyle = TextStyle(color = if (isShareNameValid) Color.White else Color.Red),
             )
 
             MyIconButton(
-                text = "测试连接",
+                text = stringResource(R.string.ui_label_test_connection),
                 icon = R.drawable.check24dp,
                 modifier = Modifier.fillMaxWidth(1f),
                 enabled = true,
@@ -179,7 +180,7 @@ fun SMBConScreen(smbListViewModel: SMBListViewModel = viewModel()) {
             )
 
             MyIconButton(
-                text = "保存连接",
+                text = stringResource(R.string.ui_label_save_connection),
                 icon = R.drawable.save24dp,
 
                 modifier = Modifier.fillMaxWidth(1f),
@@ -192,7 +193,7 @@ fun SMBConScreen(smbListViewModel: SMBListViewModel = viewModel()) {
                         if (smbListViewModel.addConnection(
                                 SMBConnection(
                                     UUID.randomUUID().toString(),
-                                    aliasName.ifBlank { "未命名SMB连接" },
+                                    aliasName.ifBlank { context.getString(R.string.ui_label_unnamed_smb_connection) },
                                     ip,
                                     username,
                                     password,
@@ -200,23 +201,23 @@ fun SMBConScreen(smbListViewModel: SMBListViewModel = viewModel()) {
                                 )
                             )
                         ) {
-                            Toast.makeText(context, "添加成功", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, context.getString(R.string.ui_label_added_successfully), Toast.LENGTH_SHORT).show()
                         } else {
                             Toast.makeText(
                                 context,
-                                "添加失败,已经有相同的连接存在",
+                                context.getString(R.string.ui_label_save_failed_connection_exists),
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
                     } else {
-                        Toast.makeText(context, "请先连接成功后再保存", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(R.string.ui_label_save_after_successful_connection), Toast.LENGTH_SHORT).show()
                     }
                 },
 
                 )
 
             MyIconButton(
-                text = "断开连接",
+                text = stringResource(R.string.ui_label_disconnect),
                 icon = R.drawable.linkoff24dp,
 
                 modifier = Modifier.fillMaxWidth(1f),

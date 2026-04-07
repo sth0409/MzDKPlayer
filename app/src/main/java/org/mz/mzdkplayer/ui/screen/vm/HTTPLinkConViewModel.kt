@@ -101,7 +101,7 @@ class HTTPLinkConViewModel : ViewModel() {
                     Log.d("HTTPLinkConViewModel", "列出文件成功: $fullUrl")
                 } catch (e: Exception) {
                     Log.e("HTTPLinkConViewModel", "获取文件列表失败: $fullUrl", e)
-                    _connectionStatus.value = FileConnectionStatus.Error("获取文件失败: ${e.message}")
+                    _connectionStatus.value = FileConnectionStatus.Error("File listing failed: ${e.message}")
                 }
             }
         }

@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -156,7 +157,7 @@ fun FTPFileListScreen(
                 // 连接或列表错误
                 val errorMessage = (connectionStatus as FileConnectionStatus.Error).message
                 Log.e("FTPFileListScreen", "Error state: $errorMessage")
-                Toast.makeText(context, "FTP 错误: $errorMessage", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, "${context.getString(R.string.ui_label_ftp_error)} $errorMessage", Toast.LENGTH_LONG).show()
             }
 
             else -> {}
@@ -179,7 +180,7 @@ fun FTPFileListScreen(
                 isDirectory = false,
                 videoUri = focusedMediaUri,
                 dataSourceType = "FTP",
-                connectionName = ftpConnection.name?:"未知连接"
+                connectionName = ftpConnection.name?:context.getString(R.string.ui_label_unknown_connection)
             )
 
         } else {
@@ -191,7 +192,7 @@ fun FTPFileListScreen(
                 isDirectory = false,
                 videoUri = focusedMediaUri,
                 dataSourceType = "FTP",
-                connectionName = ftpConnection.name?:"未知连接"
+                connectionName = ftpConnection.name?:context.getString(R.string.ui_label_unknown_connection)
             )
         }
     }
@@ -215,13 +216,13 @@ fun FTPFileListScreen(
                 // 显示错误信息
                 val errorMessage = (connectionStatus as FileConnectionStatus.Error).message
                 VAErrorScreen(
-                    "加载失败: $errorMessage",
+                    "${stringResource(R.string.ui_label_loading_failed)} $errorMessage",
                 )
             }
 
             is FileConnectionStatus.FilesLoaded -> {
                 if (fileList.isEmpty()) {
-                    FileEmptyScreen("此目录为空")
+                    FileEmptyScreen(stringResource(R.string.ui_label_directory_empty))
 
                 } else {
                     // 已连接，显示文件列表
@@ -238,7 +239,11 @@ fun FTPFileListScreen(
                                 // 搜索无结果
                                 filteredFiles.isEmpty() && seaText.isNotBlank() -> {
                                     item {
-                                        NoSearchResult(text = "没有匹配 \"$seaText\" 的文件")
+                                        NoSearchResult(text = "${stringResource(R.string.ui_label_no_match_truncated)} \"$seaText\" ${
+                                            stringResource(
+                                                R.string.ui_label_files_suffix
+                                            )
+                                        }")
                                     }
                                 }
 
@@ -270,7 +275,7 @@ fun FTPFileListScreen(
                                                             URLEncoder.encode(newPath.ifEmpty { " " }, "UTF-8")
                                                         } catch (e: Exception) {
                                                             Log.e("FTPFileListScreen", "目录路径编码失败: $e")
-                                                            Toast.makeText(context, "目录路径编码失败", Toast.LENGTH_SHORT).show()
+                                                            Toast.makeText(context, context.getString(R.string.ui_label_directory_path_encoding_failed), Toast.LENGTH_SHORT).show()
                                                             return@launch
                                                         }
 
@@ -292,7 +297,7 @@ fun FTPFileListScreen(
                                                             URLEncoder.encode(fullFileUrl, "UTF-8")
                                                         } catch (e: Exception) {
                                                             Log.e("FTPFileListScreen", "文件URL编码失败: $e")
-                                                            Toast.makeText(context, "文件路径编码失败", Toast.LENGTH_SHORT).show()
+                                                            Toast.makeText(context, context.getString(R.string.ui_label_file_path_encoding_failed), Toast.LENGTH_SHORT).show()
                                                             return@launch
                                                         }
 
@@ -300,7 +305,7 @@ fun FTPFileListScreen(
                                                             URLEncoder.encode(fileName, "UTF-8")
                                                         } catch (e: Exception) {
                                                             Log.e("FTPFileListScreen", "文件名编码失败: $e")
-                                                            Toast.makeText(context, "文件名编码失败", Toast.LENGTH_SHORT).show()
+                                                            Toast.makeText(context, context.getString(R.string.ui_label_filename_encoding_failed), Toast.LENGTH_SHORT).show()
                                                             return@launch
                                                         }
 
@@ -308,7 +313,7 @@ fun FTPFileListScreen(
                                                             URLEncoder.encode(ftpConnection.name, "UTF-8")
                                                         } catch (e: Exception) {
                                                             Log.e("FTPFileListScreen", "连接名编码失败: $e")
-                                                            Toast.makeText(context, "连接名编码失败", Toast.LENGTH_SHORT).show()
+                                                            Toast.makeText(context, context.getString(R.string.ui_label_connection_name_encoding_failed), Toast.LENGTH_SHORT).show()
                                                             return@launch
                                                         }
 
@@ -393,7 +398,7 @@ fun FTPFileListScreen(
                                                             else -> {
                                                                 Toast.makeText(
                                                                     context,
-                                                                    "不支持的文件格式: $fileExtension",
+                                                                    context.getString(R.string.ui_label_unsupported_file_format,fileExtension),
                                                                     Toast.LENGTH_SHORT
                                                                 ).show()
                                                             }
@@ -451,7 +456,7 @@ fun FTPFileListScreen(
                                 onValueChange = { seaText = it },
                                 modifier = Modifier.fillMaxWidth(),
                                 colors = myTTFColor(),
-                                placeholder = "请输入文件名",
+                                placeholder =stringResource(R.string.ui_label_please_enter_filename),
                                 textStyle = TextStyle(color = Color.White),
                             )
                             // 2. 中间的海报和文字区域（包裹在一个 Column 里）
@@ -481,8 +486,8 @@ fun FTPFileListScreen(
                                     contentAlignment = Alignment.Center
                                 ) {
                                     val progressText = when {
-                                        isScanning -> if (totalScanCount > 0) "正在获取视频信息 $currentScanIndex/$totalScanCount" else "正在准备视频扫描..."
-                                        isAudioScanning -> "正在解析音乐文件名..."
+                                        isScanning -> if (totalScanCount > 0) "${stringResource(R.string.ui_label_getting_video_info)} $currentScanIndex/$totalScanCount" else stringResource(R.string.ui_label_preparing_video_scan)
+                                        isAudioScanning -> stringResource(R.string.ui_label_parsing_music_filename)
                                         else -> null // 返回 null 不显示
                                     }
                                     progressText?.let {
@@ -500,13 +505,13 @@ fun FTPFileListScreen(
                                         icon = painterResource(R.drawable.videoadd24dp),
                                         // 动态显示 tooltip 内容
                                         tooltip = if (isScanning && totalScanCount > 0)
-                                            "正在获取信息 $currentScanIndex/$totalScanCount"
-                                        else "批量添加到视频库",
+                                            "${stringResource(R.string.ui_label_getting_info)} $currentScanIndex/$totalScanCount"
+                                        else stringResource(R.string.ui_label_bulk_add_to_video_library),
                                         onClick = {
                                             if (!settingsState.ftp) {
                                                 Toast.makeText(
                                                     context,
-                                                    "当前数据源未开启刮削功能 请在设置中开启",
+                                                    context.getString(R.string.ui_label_scraping_not_enabled),
                                                     Toast.LENGTH_SHORT
                                                 ).show()
                                             } else {
@@ -523,7 +528,7 @@ fun FTPFileListScreen(
                                                 if (videoFilesToScan.isEmpty()) {
                                                     Toast.makeText(
                                                         context,
-                                                        "当前目录没有视频文件",
+                                                        context.getString(R.string.ui_label_no_video_files_in_directory),
                                                         Toast.LENGTH_SHORT
                                                     ).show()
                                                     return@CirCleIconButton
@@ -539,7 +544,7 @@ fun FTPFileListScreen(
                                                 // 3. 调用 ViewModel 开始后台任务
                                                 Toast.makeText(
                                                     context,
-                                                    "开始后台获取信息，请稍候...",
+                                                    context.getString(R.string.ui_label_start_background_info_retrieval),
                                                     Toast.LENGTH_SHORT
                                                 ).show()
                                                 movieViewModel.batchScrapeVideoInfo(
@@ -554,12 +559,12 @@ fun FTPFileListScreen(
                                     // --- 音乐扫描按钮 ---
                                     CirCleIconButton(
                                         icon = painterResource(R.drawable.musicnoteadd_24dp),
-                                        tooltip = if (isAudioScanning) "正在解析文件名..." else "批量添加到音乐库",
+                                        tooltip = if (isAudioScanning) stringResource(R.string.ui_label_parsing_filename) else  stringResource(R.string.ui_label_bulk_add_to_music_library),
                                         onClick = {
                                             if (!settingsState.ftp) {
                                                 Toast.makeText(
                                                     context,
-                                                    "当前数据源未开启刮削功能 请在设置中开启",
+                                                    context.getString(R.string.ui_label_scraping_not_enabled),
                                                     Toast.LENGTH_SHORT
                                                 ).show()
                                             } else {
@@ -575,7 +580,7 @@ fun FTPFileListScreen(
                                                 if (audioFiles.isEmpty()) {
                                                     Toast.makeText(
                                                         context,
-                                                        "没有发现音频文件",
+                                                        context.getString(R.string.ui_label_no_audio_files_found),
                                                         Toast.LENGTH_SHORT
                                                     ).show()
                                                     return@CirCleIconButton
@@ -595,7 +600,7 @@ fun FTPFileListScreen(
                                                 )
                                                 Toast.makeText(
                                                     context,
-                                                    "已在后台添加 ${list.size} 首音乐",
+                                                    context.getString(R.string.ui_label_added_music_in_background,list.size),
                                                     Toast.LENGTH_SHORT
                                                 ).show()
                                             }
@@ -612,7 +617,7 @@ fun FTPFileListScreen(
 
             else -> { // 显示加载指示器
                 LoadingScreen(
-                    "正在连接FTP服务器", Modifier
+                    stringResource(R.string.ui_label_connecting_to_ftp_server), Modifier
                         .fillMaxSize()
                         .background(Color.Black)
                 )

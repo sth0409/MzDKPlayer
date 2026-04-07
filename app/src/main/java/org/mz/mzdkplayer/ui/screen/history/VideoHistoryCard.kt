@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -27,6 +28,7 @@ import androidx.tv.material3.CardDefaults
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import coil3.compose.AsyncImage
+import org.mz.mzdkplayer.R
 import org.mz.mzdkplayer.data.model.HistoryWithMetadata
 
 @Composable
@@ -41,7 +43,7 @@ fun VideoHistoryCard(
     // 优先使用元数据中的标题和图片，如果没有则使用文件名
     val title = metadata?.title ?: history.fileName
     val posterPath = metadata?.posterPath
-    val year = metadata?.releaseDate?.take(4)?: "未知年份"
+    val year = metadata?.releaseDate?.take(4)?: "--"
     val seasonNumber = metadata?.seasonNumber ?: 0
     val episodeNumber = metadata?.episodeNumber ?: 0
 // --- 关键修改点：确保微小进度至少显示 1% ---
@@ -130,9 +132,19 @@ fun VideoHistoryCard(
 
                     Text(
                         text = if (seasonNumber > 0 && episodeNumber > 0) {
-                            "第${seasonNumber}季第${episodeNumber}集 看到 ${(percentage * 100).toInt()}%"
-                        }else{
-                            "$year 看到 ${(percentage * 100).toInt()}%"
+                            // 自动匹配第1季、第2集、百分比
+                            stringResource(
+                                id = R.string.ui_label_playback_progress_episode,
+                                seasonNumber,
+                                episodeNumber,
+                                (percentage * 100).toInt()
+                            )
+                        } else {
+                            // 自动匹配年份、百分比
+                            stringResource(
+                                id = R.string.ui_label_playback_progress_year,
+                                (percentage * 100).toInt()
+                            )
                         },
                         style = MaterialTheme.typography.bodySmall,
                         color = Color.Gray,

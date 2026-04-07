@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -70,7 +71,7 @@ fun FTPConScreen(
     var port by remember { mutableStateOf("21") } // FTP 端口，默认 21
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var aliasName by remember { mutableStateOf("电影") } // 连接别名
+    var aliasName by remember { mutableStateOf("") } // 连接别名
     var shareName by remember { mutableStateOf("") } // FTP 共享文件夹名称
 
     // 用于控制键盘
@@ -88,7 +89,7 @@ fun FTPConScreen(
             // 连接状态显示
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "FTP 状态: $connectionStatus",
+                    text = stringResource(R.string.ui_label_ftp_status),
                     color = Color.White,
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.widthIn(100.dp, 400.dp),
@@ -114,7 +115,7 @@ fun FTPConScreen(
                     value = server,
                     onValueChange = { server = it },
                     modifier = Modifier.weight(0.6f),
-                    placeholder = "IP地址 (e.g., 192.168.1.8)",
+                    placeholder = stringResource(R.string.ui_label_ip_address_example),
                     colors = myTTFColor(),
                     textStyle = TextStyle(color = Color.White),
                 )
@@ -129,7 +130,7 @@ fun FTPConScreen(
                             port = newValue
                         }
                     },
-                    placeholder = "端口 (e.g., 21)",
+                    placeholder = stringResource(R.string.ui_label_port_example),
                     colors = myTTFColor(),
                     textStyle = TextStyle(color = Color.White),
                 )
@@ -139,7 +140,7 @@ fun FTPConScreen(
                 value = username,
                 onValueChange = { username = it },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = "用户名",
+                placeholder = stringResource(R.string.ui_label_username),
                 colors = myTTFColor(),
                 textStyle = TextStyle(color = Color.White),
             )
@@ -149,7 +150,7 @@ fun FTPConScreen(
                 onValueChange = { password = it },
                 modifier = Modifier.fillMaxWidth(),
                 colors = myTTFColor(),
-                placeholder = "密码",
+                placeholder = stringResource(R.string.ui_label_password),
                 textStyle = TextStyle(color = Color.White),
                 // 可以考虑设置为密码输入类型 (如果 TvTextField 支持)
                 // visualTransformation = PasswordVisualTransformation()
@@ -160,7 +161,7 @@ fun FTPConScreen(
                 value = aliasName,
                 modifier = Modifier.fillMaxWidth(),
                 onValueChange = { aliasName = it },
-                placeholder = "连接别名",
+                placeholder = stringResource(R.string.ui_label_alias),
                 colors = myTTFColor(),
                 textStyle = TextStyle(color = Color.White),
             )
@@ -170,7 +171,7 @@ fun FTPConScreen(
                 value = shareName,
                 onValueChange = { shareName = it },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = "初始共享文件夹名称 e.g. /movies",
+                placeholder = stringResource(R.string.ui_label_initial_shared_folder_name),
                 colors = myTTFColor(),
                 textStyle = TextStyle(color = Color.White),
             )
@@ -180,7 +181,7 @@ fun FTPConScreen(
             ) {
                 // 操作按钮
                 MyIconButton(
-                    text = "测试连接",
+                    text = stringResource(R.string.ui_label_test_connection),
                     icon = R.drawable.check24dp,
                     modifier = Modifier.weight(1f) .padding(end = 8.dp), // 可选：加点右边距，避免贴太紧,//  平分宽度,
                     enabled = connectionStatus != FileConnectionStatus.Connecting, // 连接中时禁用
@@ -195,7 +196,7 @@ fun FTPConScreen(
                 )
 
                 MyIconButton(
-                    text = "保存连接",
+                    text = stringResource(R.string.ui_label_save_connection),
                     icon = R.drawable.save24dp,
                     modifier = Modifier.weight(1f).padding(start = 8.dp), // 可选：加点右边距，避免贴太紧 ,// ⬅️ 平分宽度,
                     // 只有在已连接时才允许保存
@@ -208,14 +209,14 @@ fun FTPConScreen(
                             return@MyIconButton
                         }
                         if (!ftpConViewModel.isConnected()){
-                            Toast.makeText(context, "请先连接成功后再保存", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, context.getString(R.string.ui_label_save_after_successful_connection), Toast.LENGTH_SHORT).show()
                             return@MyIconButton
                         }
                         val portInt = port.toIntOrNull() ?: 21 // 保存时也转换端口，空值则默认 21
                         // 创建 FTPConnection 数据对象
                         val newConnection = FTPConnection(
                             id = UUID.randomUUID().toString(),
-                            name = aliasName.ifBlank { "未命名FTP连接" },
+                            name = aliasName.ifBlank { context.getString(R.string.ui_label_unnamed_ftp_connection)},
                             ip = server, // 使用 ip 字段存储服务器地址
                             username = username,
                             password = password, // 再次提醒：明文存储不安全
@@ -223,9 +224,9 @@ fun FTPConScreen(
                             port = portInt
                         )
                         if (ftpListViewModel.addConnection(newConnection)) {
-                            Toast.makeText(context, "FTP 连接已保存", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, context.getString(R.string.ui_label_ftp_connection_saved), Toast.LENGTH_SHORT).show()
                         } else {
-                            Toast.makeText(context, "保存失败，连接可能已存在", Toast.LENGTH_SHORT)
+                            Toast.makeText(context, context.getString(R.string.ui_label_save_failed_connection_exists), Toast.LENGTH_SHORT)
                                 .show()
                         }
                         Log.d("FtpConScreen", "保存连接: $aliasName")
@@ -233,7 +234,7 @@ fun FTPConScreen(
                 )
             }
             MyIconButton(
-                text = "断开连接",
+                text = stringResource(R.string.ui_label_disconnect),
                 icon = R.drawable.linkoff24dp,
                 modifier = Modifier.fillMaxWidth(),
                 // 只有在已连接或连接出错时才允许断开
@@ -248,7 +249,7 @@ fun FTPConScreen(
 
             // 显示当前路径 (可选)
             Text(
-                "当前路径: ${if (currentPath.startsWith("/")) currentPath else "/$currentPath"}",
+                "${stringResource(R.string.ui_label_current_path_truncated)} ${if (currentPath.startsWith("/")) currentPath else "/$currentPath"}",
                 color = Color.LightGray,
 
                 style = MaterialTheme.typography.bodyMedium,
@@ -291,7 +292,7 @@ fun FTPConScreen(
                                             // 点击文件：可以触发下载或其他操作
                                             Toast.makeText(
                                                 context,
-                                                "点击了文件: $resourceName",
+                                                context.getString(R.string.ui_label_current_path_truncated,resourceName),
                                                 Toast.LENGTH_SHORT
                                             ).show()
 
@@ -367,7 +368,7 @@ fun FTPConScreen(
             is FileConnectionStatus.Connecting -> {
                 // 显示连接中提示
                 Text(
-                    text = "正在连接...",
+                    text = stringResource(R.string.ui_label_connecting),
                     modifier = Modifier
                         .fillMaxHeight()
                         .weight(1f)
@@ -402,7 +403,7 @@ fun FTPConScreen(
             else -> {
                 // Disconnected 或 Connected 但列表为空
                 Text(
-                    text = "无文件",
+                    text = stringResource(R.string.ui_label_no_files),
                     modifier = Modifier
                         .fillMaxHeight()
                         .weight(1f)

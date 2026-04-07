@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 
 import androidx.compose.ui.unit.dp
@@ -86,7 +87,7 @@ fun NFSConScreen(
             // 连接状态显示
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "NFS 状态: $connectionStatus",
+                    text = stringResource(R.string.ui_label_nfs_connection_status,connectionStatus.toString()),
                     color = Color.White,
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.widthIn(100.dp, 400.dp),
@@ -112,7 +113,7 @@ fun NFSConScreen(
                 value = serverAddress,
                 onValueChange = { serverAddress = it },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = "NFS 服务器地址 (e.g., 192.168.1.4)",
+                placeholder = stringResource(R.string.ui_label_nfs_server_address),
                 colors = myTTFColor(),
                 textStyle = TextStyle(color = Color.White),
             )
@@ -122,7 +123,7 @@ fun NFSConScreen(
                 value = shareName,
                 onValueChange = { shareName = it },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = "NFS 导出路径 (e.g., /fs/1000/nfs)",
+                placeholder = stringResource(R.string.ui_label_nfs_export_path),
                 colors = myTTFColor(),
                 textStyle = TextStyle(color = Color.White),
             )
@@ -132,7 +133,7 @@ fun NFSConScreen(
                 value = aliasName,
                 modifier = Modifier.fillMaxWidth(),
                 onValueChange = { aliasName = it },
-                placeholder = "连接别名",
+                placeholder = stringResource(R.string.ui_label_connection_alias),
                 colors = myTTFColor(),
                 textStyle = TextStyle(color = Color.White),
             )
@@ -143,7 +144,7 @@ fun NFSConScreen(
             ) {
                 // 操作按钮 - 测试连接
                 MyIconButton(
-                    text = "测试连接",
+                    text = stringResource(R.string.ui_label_test_connection),
                     icon = R.drawable.check24dp,
                     modifier = Modifier
                         .weight(1f)
@@ -169,7 +170,7 @@ fun NFSConScreen(
 
                 // 操作按钮 - 保存连接 (假设你有 NfsListViewModel)
                 MyIconButton(
-                    text = "保存连接",
+                    text = stringResource(R.string.ui_label_save_connection),
                     icon = R.drawable.save24dp,
                     modifier = Modifier
                         .weight(1f)
@@ -180,24 +181,23 @@ fun NFSConScreen(
                             return@MyIconButton
                         }
                         if (!nfsConViewModel.isConnected()) {
-                            Toast.makeText(context, "请先连接成功后再保存", Toast.LENGTH_SHORT)
-                                .show()
+                            Toast.makeText(context, context.getString(R.string.ui_label_save_after_successful_connection), Toast.LENGTH_SHORT).show()
                             return@MyIconButton
                         }
                         // 创建 NfsConnection 数据对象
                         val newConnection = NFSConnection(
                             id = UUID.randomUUID().toString(),
-                            name = aliasName.ifBlank { "未命名NFS连接" },
+                            name = aliasName.ifBlank { context.getString(R.string.ui_label_unnamed_nfs_connection)  },
                             serverAddress = serverAddress,
                             shareName
                         )
                         // 假设 NfsListViewModel 有 addConnection 方法
                         if (nfsListViewModel.addConnection(newConnection)) {
-                            Toast.makeText(context, "NFS 连接已保存", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, context.getString(R.string.ui_label_nfs_connection_saved), Toast.LENGTH_SHORT).show()
                         } else {
                             Toast.makeText(
                                 context,
-                                "保存失败，连接可能已存在",
+                                context.getString(R.string.ui_label_save_failed_connection_exists),
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
@@ -208,7 +208,7 @@ fun NFSConScreen(
 
             // 断开连接按钮
             MyIconButton(
-                text = "断开连接",
+                text = stringResource(R.string.ui_label_disconnect),
                 icon = R.drawable.linkoff24dp,
                 modifier = Modifier.fillMaxWidth(),
                 // 只有在已连接或连接出错时才允许断开
@@ -220,7 +220,7 @@ fun NFSConScreen(
 
             // 显示当前路径 (可选)
             Text(
-                text = "当前路径: $currentPath",
+                text = stringResource(R.string.ui_label_current_path,currentPath),
                 color = Color.LightGray,
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(top = 8.dp)
@@ -262,8 +262,8 @@ fun NFSConScreen(
                                                     // 点击文件：可以触发播放或其他操作
                                                     Toast.makeText(
                                                         context,
-                                                        "点击了文件: $resourceName",
-                                                        Toast.LENGTH_SHORT
+                                                        context.getString(R.string.ui_label_http_file_clicked,resourceName),
+                                                        Toast.LENGTH_LONG // 长一些以便显示 URL
                                                     ).show()
 
                                                     // 可以使用 nfsFile 的路径等信息
@@ -341,7 +341,7 @@ fun NFSConScreen(
                     } else {
                         // Connected 但列表为空
                         Text(
-                            text = "目录为空",
+                            text = stringResource(R.string.ui_label_directory_empty),
                             modifier = Modifier
                                 .fillMaxSize()
                                 .padding(16.dp),
@@ -374,7 +374,7 @@ fun NFSConScreen(
                 else -> {
                     // 显示连接中提示
                     Text(
-                        text = "正在准备获取文件...",
+                        text = stringResource(R.string.ui_label_preparing_to_retrieve_files),
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(16.dp),
@@ -386,8 +386,6 @@ fun NFSConScreen(
         }
     }
 }
-
-// --- 预览 (如果需要) ---
 
 
 

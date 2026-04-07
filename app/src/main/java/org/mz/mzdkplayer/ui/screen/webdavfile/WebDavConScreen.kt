@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -80,7 +81,7 @@ fun WebDavConScreen() {
             // 连接状态显示
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "WebDAV 状态: $connectionStatus",
+                    text = stringResource(R.string.ui_label_webdav_connection_status,connectionStatus.toString()),
                     color = Color.White,
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.widthIn(100.dp, 400.dp),
@@ -100,13 +101,14 @@ fun WebDavConScreen() {
                     }
                 )
             }
-
+// 建议先拼接好完整的提示文字
+            val placeholderText = "${stringResource(R.string.ui_hint_webdav_path)} ${stringResource(R.string.ui_hint_http_only_lan)}"
             // 输入字段 - baseUrl 现在表示完整路径
             TvTextField(
                 value = baseUrl,
                 onValueChange = { baseUrl = it },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = " WebDAV 路径 (e.g., http://192.168.1.4:5006/) 局域网仅支持http",
+                placeholder = placeholderText,
                 colors = myTTFColor(),
                 textStyle = TextStyle(color = Color.White),
             )
@@ -115,7 +117,7 @@ fun WebDavConScreen() {
                 value = username,
                 onValueChange = { username = it },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = "用户名",
+                placeholder = stringResource(R.string.ui_label_username),
                 colors = myTTFColor(),
                 textStyle = TextStyle(color = Color.White),
             )
@@ -125,7 +127,7 @@ fun WebDavConScreen() {
                 onValueChange = { password = it },
                 modifier = Modifier.fillMaxWidth(),
                 colors = myTTFColor(),
-                placeholder = "密码",
+                placeholder = stringResource(R.string.ui_label_password),
                 textStyle = TextStyle(color = Color.White),
             )
 
@@ -133,14 +135,14 @@ fun WebDavConScreen() {
                 value = aliasName,
                 onValueChange = { aliasName = it },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = "连接别名",
+                placeholder = stringResource(R.string.ui_label_connection_alias),
                 colors = myTTFColor(),
                 textStyle = TextStyle(color = Color.White),
             )
 
             // 操作按钮
             MyIconButton(
-                text = "测试连接",
+                text = stringResource(R.string.ui_label_test_connection),
                 icon = R.drawable.check24dp,
                 modifier = Modifier.fillMaxWidth(),
                 onClick = {
@@ -154,7 +156,7 @@ fun WebDavConScreen() {
             )
 
             MyIconButton(
-                text = "保存连接",
+                text = stringResource(R.string.ui_label_save_connection),
                 icon = R.drawable.save24dp,
                 modifier = Modifier.fillMaxWidth(),
                 onClick = {
@@ -165,28 +167,32 @@ fun WebDavConScreen() {
                     }
 
                     if (!webDavConViewModel.isConnected()) {
-                        Toast.makeText(context, "请先连接成功后再保存", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(R.string.ui_label_save_after_successful_connection), Toast.LENGTH_SHORT).show()
                         return@MyIconButton
                     }
 
                     val newConnection = WebDavConnection(
                         id = UUID.randomUUID().toString(),
-                        name = aliasName.ifBlank { "未命名WebDav连接" },
+                        name = aliasName.ifBlank { context.getString(R.string.ui_label_unnamed_webdav_connection) },
                         baseUrl = baseUrl, // 保存完整路径
                         username = username,
                         password = password
                     )
                     if (webDavListViewModel.addConnection(newConnection)) {
-                        Toast.makeText(context, "连接已保存", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(R.string.ui_label_connection_saved), Toast.LENGTH_SHORT).show()
                     } else {
-                        Toast.makeText(context, "保存失败，连接可能已存在", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.ui_label_save_failed_connection_exists),
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                     Log.d("WebDavConScreen", "保存连接: $aliasName, 路径: $baseUrl")
                 },
             )
 
             MyIconButton(
-                text = "断开连接",
+                text = stringResource(R.string.ui_label_disconnect),
                 icon = R.drawable.linkoff24dp,
                 modifier = Modifier.fillMaxWidth(),
                 onClick = {
@@ -198,7 +204,7 @@ fun WebDavConScreen() {
 
             // 显示当前路径
             Text(
-                text = "当前路径: $currentPath",
+                text = "${stringResource(R.string.ui_label_http_current_path)} $currentPath",
                 color = Color.LightGray,
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(top = 8.dp)
@@ -232,8 +238,8 @@ fun WebDavConScreen() {
                                     } else {
                                         Toast.makeText(
                                             context,
-                                            "点击了文件: $resourceName",
-                                            Toast.LENGTH_SHORT
+                                            context.getString(R.string.ui_label_http_file_clicked,resourceName),
+                                            Toast.LENGTH_LONG // 长一些以便显示 URL
                                         ).show()
                                     }
                                 }
@@ -269,7 +275,7 @@ fun WebDavConScreen() {
 
             is FileConnectionStatus.Connecting -> {
                 Text(
-                    text = "正在连接...",
+                    text = stringResource(R.string.ui_label_connecting),
                     modifier = Modifier
                         .fillMaxHeight()
                         .weight(1f)
@@ -301,7 +307,7 @@ fun WebDavConScreen() {
             }
             else -> {
                 Text(
-                    text = "无文件",
+                    text = stringResource(R.string.ui_label_no_files),
                     modifier = Modifier
                         .fillMaxHeight()
                         .weight(1f)

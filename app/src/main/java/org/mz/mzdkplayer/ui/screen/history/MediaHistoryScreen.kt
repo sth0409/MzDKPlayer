@@ -11,10 +11,12 @@ import androidx.paging.compose.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.tv.material3.*
+import org.mz.mzdkplayer.R
 import org.mz.mzdkplayer.ui.screen.common.DashboardTopBarItemIndicator
 import org.mz.mzdkplayer.ui.screen.vm.MediaHistoryViewModel
 import org.mz.mzdkplayer.ui.theme.myListItemCoverColor
@@ -38,7 +40,7 @@ fun MediaHistoryScreen(
 
     Column(modifier = Modifier.fillMaxSize().padding(24.dp)) {
 
-        Text(text = "播放历史", style = MaterialTheme.typography.headlineMedium, color = Color.White)
+        Text(text = stringResource(R.string.ui_label_playback_history), style = MaterialTheme.typography.headlineMedium, color = Color.White)
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -64,7 +66,7 @@ fun MediaHistoryScreen(
                     animationSpec = tween(durationMillis = 100)
                 )
                 // 修正 Tab Count
-                Text("视频 (${videoHistoryItems.itemCount})", modifier = Modifier.padding(12.dp), color = textColor)
+                Text(stringResource(R.string.ui_label_video_history_count,videoHistoryItems.itemCount), modifier = Modifier.padding(12.dp), color = textColor)
             }
             Tab(
                 selected = selectedTab == 1,
@@ -76,7 +78,7 @@ fun MediaHistoryScreen(
                     animationSpec = tween(durationMillis = 100)
                 )
                 // 修正 Tab Count
-                Text("音频 (${audioHistoryItems.itemCount})", modifier = Modifier.padding(12.dp), color = textColor)
+                Text(stringResource(R.string.ui_label_audio_history_count,audioHistoryItems.itemCount), modifier = Modifier.padding(12.dp), color = textColor)
             }
         }
 
@@ -151,7 +153,7 @@ fun MediaHistoryScreen(
                             },
                             trailingContent = {
                                 Icon(
-                                    painter = androidx.compose.ui.res.painterResource(org.mz.mzdkplayer.R.drawable.baseline_music_note_24),
+                                    painter = androidx.compose.ui.res.painterResource(R.drawable.baseline_music_note_24),
                                     contentDescription = null
                                 )
                             }

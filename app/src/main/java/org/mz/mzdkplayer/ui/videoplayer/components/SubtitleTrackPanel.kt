@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -54,7 +55,7 @@ fun SubtitleTrackPanel(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "字幕轨道",
+                text = stringResource(R.string.ui_label_subtitle_tracks),
                 fontWeight = FontWeight.Bold,
                 color = Color.White,
                 fontSize = 24.sp,
@@ -62,7 +63,7 @@ fun SubtitleTrackPanel(
             )
 
             MyIconButton(
-                text = "加载外部字幕",
+                text = stringResource(R.string.ui_label_load_external_subtitles),
                 icon = R.drawable.baseline_search_24,
                 onClick = {
                     // onLoadExternalSubtitle() // 直接调用回调，解耦到底层实现
@@ -76,7 +77,7 @@ fun SubtitleTrackPanel(
             if (lists.isEmpty()) {
                 item {
                     Box(modifier = Modifier.width(360.dp), contentAlignment = Alignment.Center) {
-                        Text("该文件无字幕轨道", fontWeight = FontWeight.Bold, color = Color.White, fontSize = 20.sp)
+                        Text(stringResource(R.string.ui_label_no_subtitle_tracks_in_file), fontWeight = FontWeight.Bold, color = Color.White, fontSize = 20.sp)
                     }
                 }
             } else {
@@ -88,7 +89,7 @@ fun SubtitleTrackPanel(
 
                     val trackLabel = track.name
                     val trackLang = track.language
-                    val trackMimeType = track.mimeType.ifEmpty { "未知格式" }
+                    val trackMimeType = track.mimeType.ifEmpty {stringResource(R.string.ui_label_unknown_format) }
 
                     val isExternalAutoSearch = trackLabel.startsWith("[外部加载]")
                     val labelText = if (isExternalAutoSearch) trackLabel.replace("[外部加载] ", "") else trackLabel
@@ -97,7 +98,7 @@ fun SubtitleTrackPanel(
                     val titleText = when {
                         isExternalAutoSearch -> "$languageText $labelText (未找到文件可能缓冲)"
                         trackLabel.isNotEmpty() -> "$languageText $labelText"
-                        else -> "$languageText 字幕"
+                        else -> "$languageText ${stringResource(R.string.ui_label_language_subtitles)}"
                     }
 
                     ListItem(
@@ -123,7 +124,7 @@ fun SubtitleTrackPanel(
                             )
                         },
                         overlineContent = {
-                            Text("字幕格式 · $trackMimeType")
+                            Text(stringResource(R.string.ui_label_subtitle_format,trackMimeType))
                         },
                         leadingContent = if (selectedIndex == index) {
                             { Icon(Icons.Filled.Check, contentDescription = "已选择") }

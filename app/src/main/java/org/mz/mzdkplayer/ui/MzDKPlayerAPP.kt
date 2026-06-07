@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,13 +23,16 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -43,7 +48,12 @@ import androidx.tv.material3.DrawerValue
 import androidx.tv.material3.Icon
 import androidx.tv.material3.ListItem
 import androidx.tv.material3.ListItemDefaults
+import androidx.tv.material3.MaterialTheme
+import androidx.tv.material3.ModalNavigationDrawer
 import androidx.tv.material3.NavigationDrawer
+import androidx.tv.material3.NavigationDrawerItem
+import androidx.tv.material3.NavigationDrawerItemDefaults
+import androidx.tv.material3.Text
 import org.mz.mzdkplayer.MzDkPlayerApplication
 import org.mz.mzdkplayer.R
 import org.mz.mzdkplayer.data.model.FTPConnection
@@ -169,37 +179,44 @@ fun MzDKPlayerAPP(externalVideoUri: Uri?) {
             LaunchedEffect(Unit) {
                 sideFocusRequest.requestFocus()
             }
-            NavigationDrawer(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(),
-                drawerContent = {
+            val drawerState = remember { DrawerState(initialValue = DrawerValue.Closed) }
+            ModalNavigationDrawer(
+                drawerState = drawerState, // 直接传入保存的状态,
+                modifier = Modifier.fillMaxSize(),
+                drawerContent = {drawerValue ->
+                    val isOpen = drawerValue == DrawerValue.Open
+                    val warmWhite = Color(0xFFFFF6E5)       // 定义暖白色
                     Column(
                         Modifier
-                            .background(Color(38, 38, 42, 255))
+                            // 展开时使用深色半透明背景，收起时完全透明
+                            // 👇 修改 1：使用水平渐变色
+                            .background(
+                                if (isOpen) {
+                                    Brush.horizontalGradient(
+                                        colors = listOf(
+                                            Color(0xE6000000), // 左侧：90% 黑
+                                            Color(0x00000000)  // 右侧：完全透明
+                                        )
+                                    )
+                                } else {
+                                    SolidColor(Color.Transparent) // 收起时纯透明
+                                }
+                            )
+
                             .fillMaxHeight()
-                            .padding(6.dp)
-                            .widthIn(50.dp, 50.dp)
-                            .selectableGroup()
-                            .focusRequester(focusRequester = sideFocusRequest),
-                        // 👇 这样写：既保持 10.dp 间距，又让整个内容块在 Column 中居中
-                        verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically),
+                            .padding(vertical = 24.dp, horizontal = 12.dp)
+                            // 动画过渡宽度
+                            .width(if (isOpen) 240.dp else 64.dp)
+                            .selectableGroup(),
+                        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
                     ) {
                         items.forEachIndexed { index, item ->
                             val (text, icon) = item
-                            ListItem(
-                                selected = selectedIndex==index,
-                                modifier = if (index == len - 0 || index == len - 1) Modifier
-                                    .widthIn(
-                                        50.dp
-                                    )
-                                    .height(50.dp)
-                                    .align(Alignment.End) else Modifier
-                                    .widthIn(
-                                        50.dp
-                                    )
-                                    .height(50.dp),
-                                shape = ListItemDefaults.shape(RoundedCornerShape(50)),
+                            val isSelected = selectedIndex == index // 提取一个变量方便复用
+                            NavigationDrawerItem(
+
+                                selected = isSelected,
+//
                                 onClick = {
                                     selectedIndex = index
                                     when (selectedIndex) {
@@ -265,18 +282,44 @@ fun MzDKPlayerAPP(externalVideoUri: Uri?) {
                                 leadingContent = {
                                     Icon(
                                         painter = icon,
-                                        contentDescription = null,
+                                        contentDescription = text,
+                                        // 👇 修改 2：强制统一所有图标大小为 24.dp
+                                        modifier = Modifier.size(24.dp),
+                                        // 👇 修改 2：选中时图标变黑，未选中时保持半透明白
+                                        tint = if (isSelected) Color.Black else Color.White.copy(alpha = 0.6f)
                                     )
-                                    // Text(text, color = Color.White)
                                 },
-                                colors = mySideListItemColor(),
-                                headlineContent = {},
-                            )
+                                // 👇 修改 3：配置 Item 的底色
+                                colors = NavigationDrawerItemDefaults.colors(
+                                    containerColor = Color.Transparent,                     // 默认底色透明
+                                    focusedContainerColor = Color.White.copy(alpha = 0.15f),// 未选中但焦点悬停时的底色
+                                    selectedContainerColor = warmWhite,                     // 选中时的底色 (暖白)
+                                    focusedSelectedContainerColor = warmWhite               // 选中且焦点悬停时的底色 (暖白)
+                                ),
+                                // ✅ 关键修改：把焦点请求器绑定到第 1 个 Item 上
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .then(
+                                        if (index == 0) Modifier.focusRequester(sideFocusRequest)
+                                        else Modifier
+                                    )
+
+                            ){
+                                if (isOpen) {
+                                    Text(
+                                        text = text,
+                                        // 👇 修改 4：选中时文字变黑，未选中时纯白
+                                        color = if (isSelected) Color.Black else Color.White,
+                                        modifier = Modifier.padding(start = 12.dp),
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+                                }
+                            }
                         }
                     }
 
                 },
-                drawerState = DrawerState(DrawerValue.Closed),
+
                 content = {
                     NavHost(
                         navController = homeNavController,
@@ -285,6 +328,8 @@ fun MzDKPlayerAPP(externalVideoUri: Uri?) {
                             .background(Color.Black)
                             .fillMaxHeight()
                             .fillMaxWidth()
+                            // 👇 关键修改：统一在这里加上 64.dp 的左侧边距
+                            .padding(start = 64.dp)
                     ) {
                         //声明名为MainPage的页面路由
                         composable("FileHomePage") {

@@ -67,6 +67,7 @@ import org.mz.mzdkplayer.ui.screen.common.TvTextField
 import org.mz.mzdkplayer.ui.screen.vm.AudioViewModel
 import org.mz.mzdkplayer.ui.screen.vm.MovieViewModel
 import org.mz.mzdkplayer.ui.screen.vm.SettingsViewModel
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -126,7 +127,7 @@ fun WebDavFileListScreen(
 
         when (connectionStatus) {
             is FileConnectionStatus.Connected -> {
-                delay(300)
+                delay(300.milliseconds)
                 // 已连接，可以安全地列出文件
                 //Log.d("WebDavFileListScreen", "Already connected, listing files for path: $path")
                 viewModel.listFiles(

@@ -30,6 +30,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -65,6 +67,7 @@ import org.mz.mzdkplayer.ui.screen.vm.SettingsViewModel
 import org.mz.mzdkplayer.ui.theme.myListItemCoverColor
 import java.net.URLEncoder
 import java.util.Locale
+import androidx.compose.ui.platform.LocalLocale
 
 // === 电视剧屏幕 (原生 Box 实现沉浸式列表) ===
 @OptIn(ExperimentalTvMaterial3Api::class)
@@ -88,10 +91,18 @@ fun TvLibraryScreen(
     val settingsState by settingsViewModel.uiState.collectAsState()
     // 控制弹窗显示
     var showEditDialog by remember { mutableStateOf(false) }
+    // 👇 1. 为电视剧列表创建 FocusRequester
+    val listFocusRequester = remember { FocusRequester() }
     // 如果刚进入页面没有焦点，默认尝试获取列表第一个作为背景
     LaunchedEffect(tvSeriesList.itemSnapshotList.items) {
         if (focusedTvShow == null && tvSeriesList.itemCount > 0) {
             focusedTvShow = tvSeriesList.itemSnapshotList.items.firstOrNull()
+        }
+    }
+    // 👇 2. 监听加载状态，加载完成且非空时自动请求焦点
+    LaunchedEffect(isTvSeriesLoading, isTvSeriesEmpty) {
+        if (!isTvSeriesLoading && !isTvSeriesEmpty) {
+            runCatching { listFocusRequester.requestFocus() }
         }
     }
     if (isTvSeriesLoading) {
@@ -188,7 +199,7 @@ fun TvLibraryScreen(
                     horizontalArrangement = Arrangement.spacedBy(24.dp), // 增大水平间距，让卡片更分散
                     modifier = Modifier
                         .height(260.dp)
-                        .background(Color.Transparent) // 占据 Column 剩下的所有垂直空间
+                        .background(Color.Transparent).focusRequester(listFocusRequester) // 占据 Column 剩下的所有垂直空间
                 ) {
                     items(tvSeriesList.itemCount) { index ->
                         val tvShow = tvSeriesList[index]
@@ -254,7 +265,7 @@ fun TvLibraryScreen(
 
                         // 元数据行：年份 | 评分
                         val year = tvShow.releaseDate?.take(4) ?: ""
-                        val rating = String.format(Locale.getDefault(),"%.1f", tvShow.voteAverage)
+                        val rating = String.format(LocalLocale.current.platformLocale,"%.1f", tvShow.voteAverage)
                         Text(
                             text = "$year  •  TMDB $rating",
                             style = MaterialTheme.typography.titleMedium,

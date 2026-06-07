@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -26,6 +27,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -59,7 +62,13 @@ fun SearchScreen(
     val episodes by viewModel.selectedSeriesEpisodes.collectAsState()
     var showEpisodeDialog by remember { mutableStateOf(false) }
     var selectedSeriesName by remember { mutableStateOf("") }
+    // 👇 添加一个 FocusRequester
+    val buttonFocusRequester = remember { FocusRequester() }
 
+    // 👇 关键：页面加载后，主动把焦点丢给按钮
+    LaunchedEffect(Unit) {
+        buttonFocusRequester.requestFocus()
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -74,7 +83,7 @@ fun SearchScreen(
                 value = query,
                 onValueChange = { viewModel.onSearchQueryChanged(it) },
                 placeholder = stringResource(R.string.ui_label_search_movies_shows),
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f).focusRequester(buttonFocusRequester),
                 colors = myTTFColor(),
                 textStyle = TextStyle(color = Color.White),
             )

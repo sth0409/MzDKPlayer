@@ -1,6 +1,7 @@
 package org.mz.mzdkplayer.ui.screen.common
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,8 +11,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -26,6 +32,13 @@ import org.mz.mzdkplayer.R
 
 @Composable
 fun LibraryEmpty(type: String ="movie", navController: NavController){
+    // 👇 添加一个 FocusRequester
+    val buttonFocusRequester = remember { FocusRequester() }
+
+    // 👇 关键：页面加载后，主动把焦点丢给按钮
+    LaunchedEffect(Unit) {
+        buttonFocusRequester.requestFocus()
+    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -35,7 +48,9 @@ fun LibraryEmpty(type: String ="movie", navController: NavController){
             modifier = Modifier
                 .align(Alignment.Center)
                 .verticalScroll(rememberScrollState()) // 允许内容滚动以防文本过长
-                .padding(24.dp), // 给内容区域添加内边距
+                .padding(24.dp)// 给内容区域添加内边距 // 👇 关键：让整个内容区成为一个焦点组，并确保焦点能自动恢复到按钮上
+                .focusGroup()
+                .focusRestorer(),
             horizontalAlignment = Alignment.CenterHorizontally, // 水平居中 Column 内的元素
             verticalArrangement = Arrangement.spacedBy(16.dp) // 设置元素间的垂直间距
         ) {
@@ -63,6 +78,7 @@ fun LibraryEmpty(type: String ="movie", navController: NavController){
             //
             MyIconButton(
                 text = stringResource(R.string.ui_label_go_to_file_section_to_add),
+                modifier = Modifier.focusRequester(buttonFocusRequester), // 👇 绑定请求器
                 icon = when (type) {"movie","tv"->R.drawable.videoadd24dp
                     else -> {R.drawable.musicnoteadd_24dp}
                 },

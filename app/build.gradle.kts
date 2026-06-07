@@ -1,4 +1,4 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 import java.util.Properties
 
 plugins {
@@ -14,9 +14,9 @@ android {
     defaultConfig {
         applicationId = "org.mz.mzdkplayer"
         minSdk = 23
-        targetSdk = 36
-        versionCode = 95
-        versionName = "1.15.6"
+        targetSdk = 37
+        versionCode = 97
+        versionName = "1.15.8"
         ndk {
             //noinspection ChromeOsAbiSupport
             abiFilters += listOf("armeabi-v7a", "arm64-v8a","x86")

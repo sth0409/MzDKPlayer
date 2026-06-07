@@ -17,6 +17,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -70,7 +72,8 @@ fun SettingsScreen(
     val movieVM: MovieViewModel = viewModelWithFactory { RepositoryProvider.createMovieViewModel() }
     val state by settingsVM.uiState.collectAsState()
     val context = LocalContext.current
-
+// 👇 1. 为lie创建 FocusRequester
+    val listFocusRequester = remember { FocusRequester() }
     // 当前选中的分类，默认为第一个
     var selectedCategory by remember { mutableStateOf(SettingCategory.General) }
 
@@ -90,6 +93,10 @@ fun SettingsScreen(
             lastClickTime = currentTime
         }
     }
+    // 👇 关键：页面加载后，主动把焦点丢给按钮
+    LaunchedEffect(Unit) {
+        listFocusRequester.requestFocus()
+    }
     // 使用 Row 实现左右两栏布局
     Row(
         modifier = Modifier
@@ -102,7 +109,7 @@ fun SettingsScreen(
                 .weight(0.3f)
                 .fillMaxHeight()
                 .selectableGroup() // 优化无障碍和焦点
-                .padding(end = 12.dp),
+                .padding(end = 12.dp).focusRequester(listFocusRequester),
             contentPadding = PaddingValues(horizontal = 16.dp)
         )
         {

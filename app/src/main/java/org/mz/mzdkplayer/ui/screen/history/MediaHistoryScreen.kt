@@ -7,9 +7,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.magnifier
 import androidx.paging.compose.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -37,7 +40,13 @@ fun MediaHistoryScreen(
 
     // 假设 isTabRowFocused 状态逻辑
     val isTabRowFocused by remember { mutableStateOf(false) }
+    // 👇 添加一个 FocusRequester
+    val buttonFocusRequester = remember { FocusRequester() }
 
+    // 👇 关键：页面加载后，主动把焦点丢给按钮
+    LaunchedEffect(Unit) {
+        buttonFocusRequester.requestFocus()
+    }
     Column(modifier = Modifier.fillMaxSize().padding(24.dp)) {
 
         Text(text = stringResource(R.string.ui_label_playback_history), style = MaterialTheme.typography.headlineMedium, color = Color.White)
@@ -45,7 +54,9 @@ fun MediaHistoryScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         // Tab Row
-        TabRow(selectedTabIndex = selectedTab, indicator  = { tabPositions, _ ->
+        TabRow(selectedTabIndex = selectedTab,
+            modifier = Modifier.focusRequester(buttonFocusRequester),
+            indicator  = { tabPositions, _ ->
             if (selectedTab >= 0) {
                 DashboardTopBarItemIndicator(
                     currentTabPosition = tabPositions[selectedTab],

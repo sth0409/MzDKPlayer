@@ -32,6 +32,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -67,6 +69,7 @@ import org.mz.mzdkplayer.ui.screen.vm.SettingsViewModel
 import org.mz.mzdkplayer.ui.theme.myListItemCoverColor
 import java.net.URLEncoder
 import java.util.Locale
+import androidx.compose.ui.platform.LocalLocale
 
 // === 电影屏幕 (原生 Box 实现沉浸式列表 - 修复卡片遮挡) ===
 @OptIn(ExperimentalTvMaterial3Api::class)
@@ -92,7 +95,8 @@ fun MovieLibraryScreen(
     val isMoviesEmpty = movies.itemCount == 0
     // 控制弹窗显示
     var showEditDialog by remember { mutableStateOf(false) }
-
+// 👇 1. 为电影列表创建一个专属的 FocusRequester
+    val listFocusRequester = remember { FocusRequester() }
     // 开头获取 context
     val context = LocalContext.current
     // 在开头定义一个临时状态
@@ -143,6 +147,13 @@ fun MovieLibraryScreen(
                     }
                 }
             }
+        }
+    }
+    // 👇 2. 监听状态变化，当列表不是加载中且不为空时，自动请求焦点
+    LaunchedEffect(isMoviesLoading, isMoviesEmpty) {
+        if (!isMoviesLoading && !isMoviesEmpty) {
+            // 使用 runCatching 防止在节点完全挂载前请求焦点抛出异常
+            runCatching { listFocusRequester.requestFocus() }
         }
     }
     // 如果刚进入页面没有焦点，默认尝试获取列表第一个作为背景
@@ -242,7 +253,7 @@ fun MovieLibraryScreen(
                     ),
                     horizontalArrangement = Arrangement.spacedBy(24.dp), // <--- 增大水平间距，让卡片更分散
                     modifier = Modifier
-                        .height(260.dp).background(Color.Transparent) // 占据 Column 剩下的所有垂直空间，实现滚动
+                        .height(260.dp).background(Color.Transparent).focusRequester(listFocusRequester)// 占据 Column 剩下的所有垂直空间，实现滚动
                 ) {
                     items(movies.itemCount) { index ->
                         val movie = movies[index]
@@ -315,7 +326,7 @@ fun MovieLibraryScreen(
 
                         // 元数据行：年份 | 评分
                         val year = movie.releaseDate?.take(4) ?: ""
-                        val rating = String.format(Locale.getDefault(),"%.1f", movie.voteAverage)
+                        val rating = String.format(LocalLocale.current.platformLocale,"%.1f", movie.voteAverage)
                         Text(
                             text = "$year  •  TMDB $rating",
                             style = MaterialTheme.typography.titleMedium,

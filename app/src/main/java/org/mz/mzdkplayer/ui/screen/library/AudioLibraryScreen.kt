@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -16,6 +17,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+// 👇 新增 FocusRequester 相关的导入
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -57,12 +62,22 @@ fun AudioLibraryScreen(
     var focusedAudio by remember { mutableStateOf<AudioCacheEntity?>(null) }
     val context = LocalContext.current
 
+    // 👇 1. 为音频列表创建 FocusRequester
+    val listFocusRequester = remember { FocusRequester() }
+
     // 预定义缺省图 Painter
     val placeholderPainter = rememberVectorPainter(ImageVector.vectorResource(R.drawable.baseline_music_note_24))
 
     LaunchedEffect(audioList) {
         if (focusedAudio == null && audioList.isNotEmpty()) {
             focusedAudio = audioList.first()
+        }
+    }
+
+    // 👇 2. 监听音频列表状态，非空时自动请求焦点
+    LaunchedEffect(audioList.isNotEmpty()) {
+        if (audioList.isNotEmpty()) {
+            runCatching { listFocusRequester.requestFocus() }
         }
     }
 
@@ -97,10 +112,10 @@ fun AudioLibraryScreen(
                 modifier = Modifier.fillMaxSize().padding(horizontal = 48.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // 左侧预览区 (增加专辑显示)
+                // 左侧预览区
                 Column(
                     modifier = Modifier.weight(0.4f).padding(end = 64.dp),
-                    horizontalAlignment = Alignment.Start // 靠左对齐，与电影页更契合
+                    horizontalAlignment = Alignment.Start
                 ) {
                     Box(
                         modifier = Modifier
@@ -149,7 +164,11 @@ fun AudioLibraryScreen(
 
                 // 右侧列表区 (紧凑单行模式)
                 LazyColumn(
-                    modifier = Modifier.weight(0.6f),
+                    modifier = Modifier
+                        .weight(0.6f)
+                        .focusGroup()
+                        .focusRestorer()
+                        .focusRequester(listFocusRequester), // 👇 3. 绑定焦点请求器到 LazyColumn
                     contentPadding = PaddingValues(vertical = 48.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
@@ -172,9 +191,8 @@ fun AudioLibraryScreen(
                             colors = MyFileListItemColor(),
                             shape = ListItemDefaults.shape(RoundedCornerShape(8.dp)),
                             leadingContent = {
-                                // 去掉了封面，用序号代替，显得更专业整洁
                                 Text(
-                                    text = String.format("%02d", index + 1),
+                                    text = String.format(Locale.getDefault(),"%02d", index + 1),
                                     style = MaterialTheme.typography.labelMedium,
                                     color = if (isFocused) Color.Black.copy(0.5f) else Color.Gray
                                 )

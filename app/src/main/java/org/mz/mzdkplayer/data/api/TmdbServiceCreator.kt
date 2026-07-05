@@ -1,24 +1,14 @@
 package org.mz.mzdkplayer.data.api
 
-
 import org.mz.mzdkplayer.BuildConfig
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import org.mz.mzdkplayer.data.repository.SettingsRepository
+import java.util.concurrent.TimeUnit
 
 object TmdbServiceCreator {
-
-    private const val BASE_URL = "https://api.themoviedb.org/3/"
-
-    // 可选：添加日志拦截器（仅 Debug）
-//    private val loggingInterceptor = run {
-//        if (BuildConfig.DEBUG) {
-//            okhttp3.logging.HttpLoggingInterceptor().apply {
-//                level = okhttp3.logging.HttpLoggingInterceptor.Level.BODY
-//            }
-//        } else null
-//    }
 
     // 👇 核心：带 API Key 自动注入的拦截器
     private val apiKeyInterceptor = Interceptor { chain ->
@@ -27,10 +17,13 @@ object TmdbServiceCreator {
             .addQueryParameter("api_key", BuildConfig.TMDB_API_KEY)
             .build()
 
+        android.util.Log.d("TmdbService", "Requesting URL: $url")
+
         val request = chain.request().newBuilder()
             .url(url)
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")
+            .header("User-Agent", "MzDKPlayer/${BuildConfig.VERSION_NAME} (Android)")
             .build()
 
         chain.proceed(request)
@@ -38,22 +31,36 @@ object TmdbServiceCreator {
 
     private val okHttpClient by lazy {
         OkHttpClient.Builder()
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
             .addInterceptor(apiKeyInterceptor)
-            .apply {
-
-            }
             .build()
     }
 
-    private val retrofit by lazy {
-        Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
+    /**
+     * 因为 BASE_URL 可能在设置中改变，所以我们不能使用 lazy retrofit。
+     * 每次请求时获取当前的 BASE_URL。
+     * 虽然频繁创建 Retrofit 实例有一定开销，但对于刮削这种非高频操作是可以接受的。
+     * 或者我们可以缓存实例，当 URL 改变时清除。
+     */
+    private var currentRetrofit: Retrofit? = null
+    private var currentBaseUrl: String? = null
+
+    @Synchronized
+    private fun getRetrofit(): Retrofit {
+        val baseUrl = SettingsRepository.tmdbBaseUrl
+        if (baseUrl != currentBaseUrl || currentRetrofit == null) {
+            currentBaseUrl = baseUrl
+            currentRetrofit = Retrofit.Builder()
+                .baseUrl(baseUrl)
+                .client(okHttpClient)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build()
+        }
+        return currentRetrofit!!
     }
 
-
-    fun <T> create(serviceClass: Class<T>): T = retrofit.create(serviceClass)
+    fun <T> create(serviceClass: Class<T>): T = getRetrofit().create(serviceClass)
     inline fun <reified T> create(): T = create(T::class.java)
 }

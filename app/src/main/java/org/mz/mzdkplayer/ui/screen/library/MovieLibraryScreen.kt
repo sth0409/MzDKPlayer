@@ -172,7 +172,7 @@ fun MovieLibraryScreen(
                         if (backdropUrl != null) {
                             AsyncImage(
                                 model = ImageRequest.Builder(LocalContext.current)
-                                    .data("https://image.tmdb.org/t/p/w1280$backdropUrl")
+                                    .data(org.mz.mzdkplayer.tool.Tools.formatImageUrl(backdropUrl, "w1280"))
                                     .crossfade(true)
                                     .build(),
                                 contentDescription = null,
@@ -353,7 +353,7 @@ fun MovieLibraryScreen(
                                     if (cardCover != null) {
                                         AsyncImage(
                                             model = ImageRequest.Builder(LocalContext.current)
-                                                .data("https://image.tmdb.org/t/p/w500$cardCover")
+                                                .data(org.mz.mzdkplayer.tool.Tools.formatImageUrl(cardCover, "w500"))
                                                 .crossfade(true)
                                                 .build(),
                                             contentDescription = movie.title,

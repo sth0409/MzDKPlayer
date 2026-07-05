@@ -1,5 +1,6 @@
 package org.mz.mzdkplayer.tool
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.net.Uri
 import android.util.Log
@@ -15,6 +16,7 @@ object NfoReader {
     /**
      * 获取 NFO 文件的输入流，逻辑参考 VideoPlayerScreen 中的弹幕加载
      */
+    @SuppressLint("Recycle")
     suspend fun getNfoStream(
         context: Context,
         videoUri: String,

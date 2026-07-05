@@ -1,5 +1,6 @@
 package org.mz.mzdkplayer.data.repository
 
+import android.util.Log
 import org.mz.mzdkplayer.data.api.TmdbApiService
 import org.mz.mzdkplayer.data.api.TmdbServiceCreator
 import org.mz.mzdkplayer.data.model.Movie
@@ -52,9 +53,11 @@ class TmdbRepository(private val apiService: TmdbApiService) {
             if (response.isSuccessful && response.body() != null) {
                 Resource.Success(response.body()!!)
             } else {
+                Log.e("TmdbRepository", "Request failed: ${response.code()} ${response.message()} - ${response.errorBody()?.string()}")
                 Resource.Error("Request failed: ${response.code()}")
             }
         } catch (e: Exception) {
+            Log.e("TmdbRepository", "Network error: ${e.message}", e)
             Resource.Error("Network error: ${e.message}", e)
         }
     }

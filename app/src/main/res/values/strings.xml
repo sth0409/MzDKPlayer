@@ -18,6 +18,13 @@
     <string name="setting_hide_details_sub">直接播放，不显示电影/电视剧详情</string>
     <string name="setting_hide_net_speed">隐藏播放页网速显示</string>
     <string name="setting_app_lang">App语言</string>
+    <string name="setting_tmdb_api_mirror">TMDB API 地址 (镜像)</string>
+    <string name="setting_tmdb_api_mirror_sub">在某些地区可能无法直接访问 TMDB，建议使用镜像地址</string>
+    <string name="ui_label_custom_tmdb_url">自定义 TMDB API 地址</string>
+    <string name="ui_label_enter_tmdb_url">请输入 TMDB API 地址 (以 /3/ 结尾)</string>
+    <string name="ui_label_test_tmdb_connection">测试 TMDB 连接</string>
+    <string name="ui_label_tmdb_connection_success">TMDB 连接成功！</string>
+    <string name="ui_label_tmdb_connection_failed">TMDB 连接失败：%s</string>
 
     <string name="setting_audio_lang">音频首选语言</string>
     <string name="setting_default_player">默认播放器内核</string>

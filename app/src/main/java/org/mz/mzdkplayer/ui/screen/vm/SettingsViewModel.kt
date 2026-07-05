@@ -2,9 +2,13 @@ package org.mz.mzdkplayer.ui.screen.vm
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import org.mz.mzdkplayer.data.repository.Resource
 import org.mz.mzdkplayer.data.repository.SettingsRepository
 import org.mz.mzdkplayer.tool.LanguageManager
 
@@ -31,7 +35,8 @@ data class SettingsUiState(
     val local: Boolean = false,
     val http: Boolean = false,
     val appLang: String = "",
-    val prioritizeLocalNfo: Boolean = false
+    val prioritizeLocalNfo: Boolean = false,
+    val tmdbBaseUrl: String = SettingsRepository.DEFAULT_TMDB_URL
 )
 
 class SettingsViewModel : ViewModel() {
@@ -66,7 +71,8 @@ class SettingsViewModel : ViewModel() {
                 local = repo.enableLocal,
                 http = repo.enableHttp,
                 appLang = repo.appLanguage,
-                prioritizeLocalNfo = repo.prioritizeLocalNfo
+                prioritizeLocalNfo = repo.prioritizeLocalNfo,
+                tmdbBaseUrl = repo.tmdbBaseUrl
             )
         }
     }
@@ -111,6 +117,47 @@ class SettingsViewModel : ViewModel() {
     }
     fun togglePrioritizeLocalNfo(v: Boolean) {
         repo.prioritizeLocalNfo = v
+        refreshState()
+    }
+
+    private val _tmdbTestResult = MutableStateFlow<Resource<String>?>(null)
+    val tmdbTestResult = _tmdbTestResult.asStateFlow()
+
+    fun testTmdbConnection(url: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            _tmdbTestResult.value = Resource.Loading
+            try {
+                // 使用临时 Retrofit 实例进行测试
+                val testClient = okhttp3.OkHttpClient.Builder()
+                    .connectTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
+                    .build()
+
+                val retrofit = retrofit2.Retrofit.Builder()
+                    .baseUrl(url)
+                    .client(testClient)
+                    .addConverterFactory(retrofit2.converter.gson.GsonConverterFactory.create())
+                    .build()
+
+                val service = retrofit.create(org.mz.mzdkplayer.data.api.TmdbApiService::class.java)
+                val response = service.getPopularMovies(page = 1) // 这是一个简单的 GET 请求
+
+                if (response.isSuccessful) {
+                    _tmdbTestResult.value = Resource.Success("Success")
+                } else {
+                    _tmdbTestResult.value = Resource.Error("HTTP ${response.code()}")
+                }
+            } catch (e: Exception) {
+                _tmdbTestResult.value = Resource.Error(e.message ?: "Unknown Error")
+            }
+        }
+    }
+
+    fun clearTmdbTestResult() {
+        _tmdbTestResult.value = null
+    }
+
+    fun setTmdbBaseUrl(v: String) {
+        repo.tmdbBaseUrl = v
         refreshState()
     }
 }

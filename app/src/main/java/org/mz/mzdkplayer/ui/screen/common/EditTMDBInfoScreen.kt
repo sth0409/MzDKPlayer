@@ -263,7 +263,7 @@ fun EditTMDBInfoScreen(
                                     scale = ListItemDefaults.scale(focusedScale = 1.02f),
                                     leadingContent = {
                                         AsyncImage(
-                                            model = "https://image.tmdb.org/t/p/w200${item.posterPath}",
+                                            model = org.mz.mzdkplayer.tool.Tools.formatImageUrl(item.posterPath, "w200"),
                                             contentDescription = null,
                                             contentScale = ContentScale.Crop,
                                             modifier = Modifier

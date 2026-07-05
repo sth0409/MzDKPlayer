@@ -863,6 +863,22 @@ object Tools {
             ""
         }
     }
+
+    /**
+     * 处理海报/背景图 URL
+     * 如果是网络全路径 (http/https) 则直接返回
+     * 如果是相对路径 (以 / 开头) 则补全 TMDB 前缀
+     * @param path 原始路径
+     * @param size TMDB 尺寸 (例如: "w200", "w500", "w1280", "original")
+     */
+    fun formatImageUrl(path: String?, size: String): String? {
+        if (path.isNullOrEmpty()) return null
+        return if (path.startsWith("http")) {
+            path
+        } else {
+            "https://image.tmdb.org/t/p/$size$path"
+        }
+    }
 }
 
 

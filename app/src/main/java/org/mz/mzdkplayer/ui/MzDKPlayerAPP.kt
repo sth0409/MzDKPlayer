@@ -338,7 +338,7 @@ fun MzDKPlayerAPP(
                             .fillMaxHeight()
                             .fillMaxWidth()
                             // 👇 关键修改：统一在这里加上 64.dp 的左侧边距
-                            .padding(start = 64.dp)
+                            .padding(start = 84.dp)
                     ) {
                         //声明名为MainPage的页面路由
                         composable("FileHomePage") {

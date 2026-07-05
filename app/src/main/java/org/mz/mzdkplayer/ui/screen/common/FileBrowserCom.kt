@@ -263,7 +263,7 @@ fun MediaPreviewSection(
                                     )
                                 ) {
                                     AsyncImage(
-                                        model = "https://image.tmdb.org/t/p/w500${movie.posterPath}",
+                                        model = org.mz.mzdkplayer.tool.Tools.formatImageUrl(movie.posterPath, "w500"),
                                         contentDescription = movie.title,
                                         contentScale = ContentScale.Fit,
                                         modifier = Modifier

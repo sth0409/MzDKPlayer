@@ -133,8 +133,8 @@ fun TvLibraryScreen(
                         if (backdropUrl != null) {
                             AsyncImage(
                                 model = ImageRequest.Builder(LocalContext.current)
-                                    // 加上 TMDB 基础路径和尺寸
-                                    .data("https://image.tmdb.org/t/p/w1280$backdropUrl")
+                                    // 使用 Tools 处理 URL
+                                    .data(org.mz.mzdkplayer.tool.Tools.formatImageUrl(backdropUrl, "w1280"))
                                     .crossfade(true)
                                     .build(),
                                 contentDescription = null,

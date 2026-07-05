@@ -198,7 +198,7 @@ private fun MovieContent(
         // --- 背景层 ---
         if (!movie.backdropPath.isNullOrEmpty()) {
             AsyncImage(
-                model = "https://image.tmdb.org/t/p/w1280${movie.backdropPath}",
+                model = org.mz.mzdkplayer.tool.Tools.formatImageUrl(movie.backdropPath, "w1280"),
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop,
@@ -526,7 +526,7 @@ private fun MoviePosterSection(movie: MovieDetails) {
             ) {
                 if (!movie.posterPath.isNullOrEmpty()) {
                     AsyncImage(
-                        model = "https://image.tmdb.org/t/p/w500${movie.posterPath}",
+                        model = org.mz.mzdkplayer.tool.Tools.formatImageUrl(movie.posterPath, "w500"),
                         contentDescription = movie.title,
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop

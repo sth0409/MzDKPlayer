@@ -39,6 +39,7 @@ import androidx.tv.material3.Switch
 import androidx.tv.material3.Text
 import org.mz.mzdkplayer.R
 import org.mz.mzdkplayer.di.RepositoryProvider
+import org.mz.mzdkplayer.data.repository.SettingsRepository
 import org.mz.mzdkplayer.tool.viewModelWithFactory
 import org.mz.mzdkplayer.ui.screen.common.DeleteConfirmDialog
 import org.mz.mzdkplayer.ui.screen.common.FilePermissionScreen
@@ -378,6 +379,8 @@ fun SubtitleSection(state: SettingsUiState, settingsVM: SettingsViewModel) {
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun SourceSection(state: SettingsUiState, settingsVM: SettingsViewModel) {
+    var showTmdbConfig by remember { mutableStateOf(false) }
+
     Column(Modifier.fillMaxWidth()) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             val modifier = Modifier.weight(1f)
@@ -407,11 +410,24 @@ fun SourceSection(state: SettingsUiState, settingsVM: SettingsViewModel) {
             DataSourceSwitch("HTTP", state.http, modifier) { settingsVM.toggleSource("HTTP", it) }
         }
         Spacer(modifier = Modifier.height(16.dp))
+        ActionSettingItem(
+            title = stringResource(R.string.setting_tmdb_api_mirror),
+            value = if (state.tmdbBaseUrl == SettingsRepository.DEFAULT_TMDB_URL) "Official" else state.tmdbBaseUrl,
+            onClick = { showTmdbConfig = true }
+        )
+        Spacer(modifier = Modifier.height(8.dp))
         SwitchSettingItem(
             title = stringResource(R.string.setting_prioritize_nfo),
             subtitle = stringResource(R.string.setting_prioritize_nfo_sub),
             checked = state.prioritizeLocalNfo,
             onCheckedChange = { settingsVM.togglePrioritizeLocalNfo(it) }
+        )
+    }
+
+    if (showTmdbConfig) {
+        TMDBConfigDialog(
+            settingsVM = settingsVM,
+            onDismiss = { showTmdbConfig = false }
         )
     }
 }

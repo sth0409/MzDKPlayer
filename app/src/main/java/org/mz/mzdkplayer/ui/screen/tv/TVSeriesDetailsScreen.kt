@@ -202,9 +202,9 @@ private fun TVSeriesContent(
     // 背景图URL
     val bgImageUrl = remember(tvEpisodeState, tvSeries) {
         if (tvEpisodeState is Resource.Success && !tvEpisodeState.data.stillPath.isNullOrEmpty()) {
-            "https://image.tmdb.org/t/p/w1280${tvEpisodeState.data.stillPath}"
+            org.mz.mzdkplayer.tool.Tools.formatImageUrl(tvEpisodeState.data.stillPath, "w1280")
         } else if (!tvSeries.backdropPath.isNullOrEmpty()) {
-            "https://image.tmdb.org/t/p/w1280${tvSeries.backdropPath}"
+            org.mz.mzdkplayer.tool.Tools.formatImageUrl(tvSeries.backdropPath, "w1280")
         } else {
             null
         }
@@ -756,7 +756,7 @@ private fun CurrentEpisodeInfoSection(
             ) {
                 if (!details.stillPath.isNullOrEmpty()) {
                     AsyncImage(
-                        model = "https://image.tmdb.org/t/p/w500${details.stillPath}",
+                        model = org.mz.mzdkplayer.tool.Tools.formatImageUrl(details.stillPath, "w500"),
                         contentDescription = null,
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop

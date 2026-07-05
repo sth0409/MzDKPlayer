@@ -118,6 +118,7 @@ class MovieViewModel(private val repository: TmdbRepository,private val mediaDao
             }
 
             val mediaInfo = MediaInfoExtractorFormFileName.extract(movieName)
+            Log.d("MovieViewModel", "Extracted MediaInfo: $mediaInfo for file: $movieName")
             if (mediaInfo.title.isBlank()) {
                 _focusedMovie.value = Resource.Success(null)
                 return@launch
@@ -653,7 +654,14 @@ class MovieViewModel(private val repository: TmdbRepository,private val mediaDao
 
             if (mediaInfo.mediaType == "movie") {
                 // 1. 搜索电影
-                val searchResult = repository.searchMovies(mediaInfo.title, year = mediaInfo.year)
+                var searchResult = repository.searchMovies(mediaInfo.title, year = mediaInfo.year)
+                
+                // [优化] 如果带年份搜索不到结果，且年份不为空，则尝试不带年份重新搜索
+                if (searchResult is Resource.Success && searchResult.data.results.isEmpty() && mediaInfo.year.isNotEmpty()) {
+                    Log.d("MovieViewModel", "Search with year failed, retrying without year: ${mediaInfo.title}")
+                    searchResult = repository.searchMovies(mediaInfo.title, year = "")
+                }
+
                 if (searchResult is Resource.Success) {
                     val basicMovie = searchResult.data.results.firstOrNull() ?: return null
 
@@ -689,7 +697,14 @@ class MovieViewModel(private val repository: TmdbRepository,private val mediaDao
                 }
             } else {
                 // 1. 搜索 TV
-                val searchResult = repository.searchTV(mediaInfo.title, year = mediaInfo.year)
+                var searchResult = repository.searchTV(mediaInfo.title, year = mediaInfo.year)
+
+                // [优化] 如果带年份搜索不到结果，且年份不为空，则尝试不带年份重新搜索
+                if (searchResult is Resource.Success && searchResult.data.results.isEmpty() && mediaInfo.year.isNotEmpty()) {
+                    Log.d("MovieViewModel", "Search TV with year failed, retrying without year: ${mediaInfo.title}")
+                    searchResult = repository.searchTV(mediaInfo.title, year = "")
+                }
+
                 if (searchResult is Resource.Success) {
                     val basicTV = searchResult.data.results.firstOrNull() ?: return null
 

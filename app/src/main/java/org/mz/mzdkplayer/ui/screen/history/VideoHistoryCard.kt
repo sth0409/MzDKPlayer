@@ -95,7 +95,7 @@ fun VideoHistoryCard(
                 ) {
                     if (!posterPath.isNullOrEmpty()) {
                         AsyncImage(
-                            model = "https://image.tmdb.org/t/p/w500$posterPath",
+                            model = org.mz.mzdkplayer.tool.Tools.formatImageUrl(posterPath, "w500"),
                             contentDescription = title,
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Crop

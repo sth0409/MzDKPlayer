@@ -18,6 +18,13 @@
     <string name="setting_hide_details_sub">Play directly without showing details</string>
     <string name="setting_hide_net_speed">Hide Network Speed</string>
     <string name="setting_app_lang">App Language</string>
+    <string name="setting_tmdb_api_mirror">TMDB API URL (Mirror)</string>
+    <string name="setting_tmdb_api_mirror_sub">Useful if TMDB is blocked in your region. Example: https://api.tmdb.org/3/</string>
+    <string name="ui_label_custom_tmdb_url">Custom TMDB API URL</string>
+    <string name="ui_label_enter_tmdb_url">Enter TMDB API URL (must end with /3/)</string>
+    <string name="ui_label_test_tmdb_connection">Test TMDB Connection</string>
+    <string name="ui_label_tmdb_connection_success">TMDB Connection Successful!</string>
+    <string name="ui_label_tmdb_connection_failed">TMDB Connection Failed: %s</string>
 
     <string name="setting_audio_lang">Preferred Audio</string>
     <string name="setting_default_player">Default Player Engine</string>

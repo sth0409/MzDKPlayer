@@ -1,7 +1,7 @@
 [versions]
 accompanistPermissions = "0.37.3"
 
-agp = "9.2.1"
+agp = "8.11.0"
 akdanmaku = "1.0.3"
 
 ashley = "1.7.4"
@@ -16,7 +16,7 @@ converterGson = "3.0.0"
 jaudiotagger = "3.0.1"
 vlcAndroidMini = "3.7.0"
 kotlin = "2.4.0"
-coreKtx = "1.19.0"
+coreKtx = "1.17.0"
 appcompat = "1.7.1"
 composeBom = "2026.06.01"
 libvlcAll = "3.7.4"
@@ -38,7 +38,7 @@ smbj = "0.14.0"
 tvFoundation = "1.0.0"
 tvMaterial = "1.1.0"
 media3Ui = "1.10.1"
-lifecycleRuntimeKtx = "2.11.0"
+lifecycleRuntimeKtx = "2.10.0"
 activityCompose = "1.13.0"
 datastorePreferences = "1.2.1"
 navigationCompose = "2.9.8"
@@ -102,7 +102,7 @@ thegrizzlylabs-sardine-android = { module = "com.github.thegrizzlylabs:sardine-a
 desugarJdkLibs = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugarJdkLibs" }
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
-# kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }

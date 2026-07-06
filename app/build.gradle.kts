@@ -3,18 +3,18 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
-    //alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
 }
 
 android {
     namespace = "org.mz.mzdkplayer"
-    compileSdk = 37
+    compileSdk = 36
     defaultConfig {
         applicationId = "org.mz.mzdkplayer"
         minSdk = 23
-        targetSdk = 37
+        targetSdk = 36
         versionCode = 97
         versionName = "1.15.8"
         ndk {
@@ -30,6 +30,11 @@ android {
 
         val tmdbApiKey = properties.getProperty("TMDB_API_KEY", "")
         buildConfigField("String", "TMDB_API_KEY", "\"$tmdbApiKey\"")
+    }
+    packaging {
+        resources {
+            excludes += "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
+        }
     }
     splits {
         // 配置 ABI 拆分
@@ -87,7 +92,7 @@ android {
 
 kotlin {
     compilerOptions {
-        jvmToolchain(21)
+        jvmToolchain(17)
         // You can add other compiler options here if needed
     }
 }

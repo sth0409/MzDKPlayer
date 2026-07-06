@@ -6,6 +6,7 @@ import android.net.Uri
 import android.util.Log
 import androidx.annotation.OptIn
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -34,6 +35,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -228,65 +230,7 @@ fun MzDKPlayerAPP(
 //
                                 onClick = {
                                     selectedIndex = index
-                                    when (selectedIndex) {
-                                        0 ->  homeNavController.navigate(
-                                            "MoviesPage",
-                                            navOptions = navOptions {
-                                                launchSingleTop = true
-                                                popUpTo("MoviesPage") {
-                                                    inclusive = true
-                                                }
-                                            })
-                                        1 ->homeNavController.navigate(
-                                            "TvLibraryPage",
-                                            navOptions = navOptions {
-                                                launchSingleTop = true
-                                                popUpTo("TvLibraryPage") {
-                                                    inclusive = true
-                                                }
-                                            })
-                                        2 ->homeNavController.navigate(
-                                            "AudioLibraryPage",
-                                            navOptions = navOptions {
-                                                launchSingleTop = true
-                                                popUpTo("AudioLibraryPage") {
-                                                    inclusive = true
-                                                }
-                                            })
-                                        3 -> homeNavController.navigate(
-                                            "HistoryPage",
-                                            navOptions = navOptions {
-                                                launchSingleTop = true
-                                                popUpTo("HistoryPage") {
-                                                    inclusive = true
-                                                }
-                                            })
-                                        4 -> homeNavController.navigate(
-                                            "FileHomePage",
-                                            navOptions = navOptions {
-                                                launchSingleTop = true
-                                                popUpTo("FileHomePage") {
-                                                    inclusive = true
-                                                }
-                                            })
-                                        5 ->homeNavController.navigate(
-                                            "SearchPage",
-                                            navOptions = navOptions {
-                                                launchSingleTop = true
-                                                popUpTo("SearchPage") {
-                                                    inclusive = true
-                                                }
-                                            })
-
-                                        6 -> homeNavController.navigate(
-                                            "SettingsPage",
-                                            navOptions = navOptions {
-                                                launchSingleTop = true
-                                                popUpTo("SettingsPage") {
-                                                    inclusive = true
-                                                }
-                                            })
-                                    }
+                                    performNavigation(selectedIndex, homeNavController)
                                 },
                                 leadingContent = {
                                     Icon(
@@ -305,9 +249,18 @@ fun MzDKPlayerAPP(
                                     selectedContainerColor = warmWhite,                     // 选中时的底色 (暖白)
                                     focusedSelectedContainerColor = warmWhite               // 选中且焦点悬停时的底色 (暖白)
                                 ),
-                                // ✅ 关键修改：把焦点请求器绑定到第 1 个 Item 上
+                                // ✅ 修改：添加触摸事件支持 + 焦点请求器
                                 modifier = Modifier
                                     .fillMaxWidth()
+                                    .pointerInput(Unit) {
+                                        detectTapGestures(
+                                            onTap = {
+                                                selectedIndex = index
+                                                performNavigation(selectedIndex, homeNavController)
+                                                Log.d("TouchTest", "Item $index tapped!")
+                                            }
+                                        )
+                                    }
                                     .then(
                                         if (index == 0) Modifier.focusRequester(sideFocusRequest)
                                         else Modifier
@@ -662,4 +615,73 @@ fun MzDKPlayerAPP(
 
     }
 
+}
+
+// ✅ 新增辅助函数：处理导航逻辑
+private fun performNavigation(selectedIndex: Int, homeNavController: androidx.navigation.NavController) {
+    when (selectedIndex) {
+        0 -> homeNavController.navigate(
+            "MoviesPage",
+            navOptions = navOptions {
+                launchSingleTop = true
+                popUpTo("MoviesPage") {
+                    inclusive = true
+                }
+            }
+        )
+        1 -> homeNavController.navigate(
+            "TvLibraryPage",
+            navOptions = navOptions {
+                launchSingleTop = true
+                popUpTo("TvLibraryPage") {
+                    inclusive = true
+                }
+            }
+        )
+        2 -> homeNavController.navigate(
+            "AudioLibraryPage",
+            navOptions = navOptions {
+                launchSingleTop = true
+                popUpTo("AudioLibraryPage") {
+                    inclusive = true
+                }
+            }
+        )
+        3 -> homeNavController.navigate(
+            "HistoryPage",
+            navOptions = navOptions {
+                launchSingleTop = true
+                popUpTo("HistoryPage") {
+                    inclusive = true
+                }
+            }
+        )
+        4 -> homeNavController.navigate(
+            "FileHomePage",
+            navOptions = navOptions {
+                launchSingleTop = true
+                popUpTo("FileHomePage") {
+                    inclusive = true
+                }
+            }
+        )
+        5 -> homeNavController.navigate(
+            "SearchPage",
+            navOptions = navOptions {
+                launchSingleTop = true
+                popUpTo("SearchPage") {
+                    inclusive = true
+                }
+            }
+        )
+        6 -> homeNavController.navigate(
+            "SettingsPage",
+            navOptions = navOptions {
+                launchSingleTop = true
+                popUpTo("SettingsPage") {
+                    inclusive = true
+                }
+            }
+        )
+    }
 }

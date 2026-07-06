@@ -33,6 +33,7 @@ import org.mz.mzdkplayer.R
 import org.mz.mzdkplayer.player.core.MzBasicTrack
 import org.mz.mzdkplayer.tool.Tools
 import org.mz.mzdkplayer.tool.focusOnInitialVisibility
+import org.mz.mzdkplayer.tool.mobileTap
 import java.util.Locale
 import androidx.compose.ui.platform.LocalLocale
 
@@ -75,12 +76,14 @@ fun AudioTrackPanel(
             }
             items(lists.size) { index ->
                 val track = lists[index]
+                val selectTrack = { onTrackSelected(track) }
                 // 逻辑判断直接用封装好的数据
                 //val channelCount = if (track.mimeType.contains("ec", true)) 6 else track.channelCount
 
                 ListItem(
                     modifier = Modifier
                         .padding(start = 15.dp, end = 15.dp, top = 10.dp, bottom = 10.dp)
+                        .mobileTap(selectTrack)
                         .let {
                             if (index == selectedIndex) it.focusOnInitialVisibility(isVis) else it
                         },
@@ -120,9 +123,7 @@ fun AudioTrackPanel(
                             contentDescription = "格式图标",
                         )
                     },
-                    onClick = {
-                        onTrackSelected(track) // 纯粹把事件抛出
-                    }
+                    onClick = selectTrack
                 )
             }
         }

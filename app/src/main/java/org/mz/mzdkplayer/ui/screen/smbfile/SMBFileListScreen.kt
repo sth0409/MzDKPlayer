@@ -64,6 +64,7 @@ import org.mz.mzdkplayer.tool.Tools
 import org.mz.mzdkplayer.tool.Tools.VideoBigIcon
 import org.mz.mzdkplayer.tool.Tools.fromBase64
 import org.mz.mzdkplayer.tool.Tools.toBase64
+import org.mz.mzdkplayer.tool.mobileTap
 import org.mz.mzdkplayer.tool.viewModelWithFactory
 import org.mz.mzdkplayer.ui.screen.common.CirCleIconButton
 
@@ -287,10 +288,7 @@ fun SMBFileListScreen(
                                         items(filteredFiles) { file ->
                                             val fileExtension =
                                                 Tools.extractFileExtension(file.name)
-                                            ListItem(
-                                                selected = false,
-
-                                                onClick = {
+                                            val openFile = openFile@{
                                                     // 1. 统一安全处理 connectionName 并转 Base64
                                                     val safeConnectionName = (if (connectionName.isBlank()) "unknown" else connectionName).toBase64()
 
@@ -370,7 +368,7 @@ fun SMBFileListScreen(
                                                                     "SMBFileListScreen",
                                                                     "未找到文件在音频列表中: ${file.name}"
                                                                 )
-                                                                return@ListItem
+                                                                return@openFile
                                                             }
 
                                                             // 构建播放列表数据
@@ -410,7 +408,12 @@ fun SMBFileListScreen(
                                                             ).show()
                                                         }
                                                     }
-                                                },
+                                            }
+
+                                            ListItem(
+                                                selected = false,
+
+                                                onClick = openFile,
                                                 onLongClick = {
                                                     if (Tools.containsVideoFormat(
                                                             fileExtension
@@ -421,6 +424,7 @@ fun SMBFileListScreen(
                                                 modifier = Modifier
                                                     .padding(end = 10.dp)
                                                     .height(40.dp)
+                                                    .mobileTap(openFile)
                                                     .onFocusChanged { focusState ->
                                                         if (focusState.isFocused) {
                                                             focusedFileName = file.name
@@ -650,5 +654,3 @@ fun SMBFileListScreen(
     }
 
 }
-
-

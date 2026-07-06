@@ -24,6 +24,7 @@ import org.mz.mzdkplayer.ui.screen.common.DashboardTopBarItemIndicator
 import org.mz.mzdkplayer.ui.screen.vm.MediaHistoryViewModel
 import org.mz.mzdkplayer.ui.theme.myListItemCoverColor
 import org.mz.mzdkplayer.tool.Tools.toBase64
+import org.mz.mzdkplayer.tool.mobileTap
 import java.net.URLEncoder
 
 @OptIn(ExperimentalTvMaterial3Api::class)
@@ -69,6 +70,7 @@ fun MediaHistoryScreen(
             }
         }) {
             Tab(
+                modifier = Modifier.mobileTap { selectedTab = 0 },
                 selected = selectedTab == 0,
                 onFocus = { selectedTab = 0 },
                 onClick = { selectedTab = 0 }
@@ -81,6 +83,7 @@ fun MediaHistoryScreen(
                 Text(stringResource(R.string.ui_label_video_history_count,videoHistoryItems.itemCount), modifier = Modifier.padding(12.dp), color = textColor)
             }
             Tab(
+                modifier = Modifier.mobileTap { selectedTab = 1 },
                 selected = selectedTab == 1,
                 onFocus = { selectedTab = 1 },
                 onClick = { selectedTab = 1 }
@@ -155,6 +158,9 @@ fun MediaHistoryScreen(
                     // record 现在是 AudioHistoryRecord 类型 (或 null)
                     if (record != null) {
                         ListItem(
+                            modifier = Modifier.mobileTap {
+                                // 音频导航逻辑 (待补充)
+                            },
                             selected = false,
                             onClick = {
                                 // 音频导航逻辑 (待补充)

@@ -21,6 +21,7 @@ import androidx.tv.material3.CardDefaults
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import coil3.compose.AsyncImage
+import org.mz.mzdkplayer.tool.mobileTap
 
 @Composable
 fun MediaCard(
@@ -36,6 +37,7 @@ fun MediaCard(
         onClick = onClick,
         onLongClick = onLongClick,
         modifier = modifier
+            .mobileTap(onClick)
             .aspectRatio(2f / 3f), // 电影海报标准比例
         shape = CardDefaults.shape(shape = RoundedCornerShape(12.dp)),
         colors = CardDefaults.colors(

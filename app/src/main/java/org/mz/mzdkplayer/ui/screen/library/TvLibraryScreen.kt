@@ -66,6 +66,7 @@ import org.mz.mzdkplayer.ui.screen.vm.MediaLibraryViewModel
 import org.mz.mzdkplayer.ui.screen.vm.SettingsViewModel
 import org.mz.mzdkplayer.ui.theme.myListItemCoverColor
 import org.mz.mzdkplayer.tool.Tools.toBase64
+import org.mz.mzdkplayer.tool.mobileTap
 import java.net.URLEncoder
 import java.util.Locale
 import androidx.compose.ui.platform.LocalLocale
@@ -405,12 +406,15 @@ fun EpisodeSelectionDialog(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         items(episodes) { episode ->
+                            val selectEpisode = { onEpisodeClick(episode) }
                             // 【修改点】使用 ListItem 替换 Button
                             ListItem(
                                 selected = false, // 焦点控制由 TV 框架自动处理
-                                onClick = { onEpisodeClick(episode) },
+                                onClick = selectEpisode,
                                 onLongClick = { selectedEpisodeForEdit = episode},
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .mobileTap(selectEpisode),
                                 colors = myListItemCoverColor(),
                                 // headlineContent: 显示季集序号
                                 headlineContent = {

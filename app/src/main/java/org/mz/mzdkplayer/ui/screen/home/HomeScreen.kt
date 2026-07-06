@@ -28,6 +28,7 @@ import androidx.tv.material3.Icon
 import androidx.tv.material3.ListItem
 import androidx.tv.material3.Text
 import org.mz.mzdkplayer.R
+import org.mz.mzdkplayer.tool.mobileTap
 import org.mz.mzdkplayer.ui.theme.myListItemCoverColor
 
 
@@ -61,25 +62,24 @@ fun FileHomeScreen(mainNavController: NavHostController) {
                     .padding(20.dp)
             ) {
                 itemsIndexed(items) { index, item ->
-                    ListItem(
-                        selected = false,
-
-                        onClick = {
-                            //val primaryStoragePath = Environment.getExternalStorageState(File("/storage/emulated"))
-                            //Log.d("primaryStoragePath",primaryStoragePath.toString())
-                            selectPanel = item;when (item) {
-                            "local" -> mainNavController.navigate(
-                                "LocalFileTypeScreen"
-                            )
-
+                    val openFileSource = {
+                        selectPanel = item
+                        when (item) {
+                            "local" -> mainNavController.navigate("LocalFileTypeScreen")
                             "SMB" -> mainNavController.navigate("SMBListScreen")
                             "WebDav" -> mainNavController.navigate("WebDavListScreen")
-                            "FTP" ->mainNavController.navigate("FTPConListScreen")
+                            "FTP" -> mainNavController.navigate("FTPConListScreen")
                             "NFS" -> mainNavController.navigate("NFSConListScreen")
                             "HTTP" -> mainNavController.navigate("HTTPLinkConListScreen")
                         }
-                        },
-                        modifier = Modifier.padding(top = 20.dp) .then(
+                    }
+                    ListItem(
+                        selected = false,
+
+                        onClick = openFileSource,
+                        modifier = Modifier.padding(top = 20.dp)
+                            .mobileTap(openFileSource)
+                            .then(
                                 if (index == 0) Modifier.focusRequester(buttonFocusRequester)
                                 else Modifier
                                 ),
@@ -112,7 +112,6 @@ fun FileHomeScreen(mainNavController: NavHostController) {
     }
 
 }
-
 
 
 

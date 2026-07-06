@@ -17,6 +17,7 @@
 package org.mz.mzdkplayer.tool
 
 import android.view.KeyEvent
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.runtime.Composable
@@ -29,6 +30,7 @@ import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onPlaced
 import kotlin.also
 import kotlin.apply
@@ -71,6 +73,18 @@ fun Modifier.handleDPadKeyEvents(
     }
 
     false
+}
+
+fun Modifier.mobileTap(onTap: () -> Unit): Modifier = mobileTap(enabled = true, onTap = onTap)
+
+fun Modifier.mobileTap(enabled: Boolean, onTap: () -> Unit): Modifier = if (!enabled) {
+    this
+} else pointerInput(onTap) {
+    detectTapGestures(
+        onTap = {
+            onTap()
+        }
+    )
 }
 
 /**

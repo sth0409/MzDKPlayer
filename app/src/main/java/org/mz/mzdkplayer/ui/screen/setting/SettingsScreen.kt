@@ -40,6 +40,7 @@ import androidx.tv.material3.Text
 import org.mz.mzdkplayer.R
 import org.mz.mzdkplayer.di.RepositoryProvider
 import org.mz.mzdkplayer.data.repository.SettingsRepository
+import org.mz.mzdkplayer.tool.mobileTap
 import org.mz.mzdkplayer.tool.viewModelWithFactory
 import org.mz.mzdkplayer.ui.screen.common.DeleteConfirmDialog
 import org.mz.mzdkplayer.ui.screen.common.FilePermissionScreen
@@ -215,7 +216,9 @@ fun CategoryItem(
                 Icon(painterResource(R.drawable.chevronright24dp), contentDescription = null)
             }
         },
-        modifier = Modifier.padding(vertical = 4.dp)
+        modifier = Modifier
+            .padding(vertical = 4.dp)
+            .mobileTap(onClick)
     )
 }
 
@@ -518,7 +521,9 @@ fun SwitchSettingItem(
         trailingContent = {
             Switch(checked = checked, onCheckedChange = null)
         },
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .mobileTap { onCheckedChange(!checked) }
     )
 }
 
@@ -537,7 +542,9 @@ fun ActionSettingItem(
         trailingContent = {
             Text(text = value, style = MaterialTheme.typography.bodyMedium)
         },
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .mobileTap(onClick)
     )
 }
 
@@ -554,7 +561,7 @@ fun DataSourceSwitch(
         onClick = { onCheckedChange(!checked) },
         colors = mySideFilterChipColor(),
         scale = FilterChipDefaults.scale(1f, 1.05f),
-        modifier = modifier,
+        modifier = modifier.mobileTap { onCheckedChange(!checked) },
         leadingIcon = {
             if (checked) Icon(painterResource(R.drawable.check24dp), contentDescription = null)
         }
@@ -581,6 +588,26 @@ fun AboutSection(context: Context, navController: NavHostController) {
     // 记录最后一次点击时间，超过 2 秒没点就重置计数
     var lastClickTime by remember { mutableLongStateOf(0L) }
 
+    val handleVersionClick = {
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - lastClickTime < 1000) {
+            clickCount++
+        } else {
+            clickCount = 1
+        }
+        lastClickTime = currentTime
+
+        // 达到 5 次点击触发
+        if (clickCount >= 5) {
+            clickCount = 0 // 重置
+            // 逻辑：奇数次去太阳系，偶数次去黑洞（或者根据喜好修改）
+            if (System.currentTimeMillis() % 2 == 0L) {
+                navController.navigate("SolarSystemScreen")
+            } else {
+                navController.navigate("BlackHoleSimulationScreen")
+            }
+        }
+    }
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -599,6 +626,7 @@ fun AboutSection(context: Context, navController: NavHostController) {
                 style = MaterialTheme.typography.headlineMedium
             )
             Surface(
+                modifier = Modifier.mobileTap(handleVersionClick),
                 shape = ClickableSurfaceDefaults.shape(shape = RoundedCornerShape(8.dp)),
                 colors = ClickableSurfaceDefaults.colors(
                     containerColor = Color.Transparent,
@@ -608,26 +636,7 @@ fun AboutSection(context: Context, navController: NavHostController) {
                 border = ClickableSurfaceDefaults.border(
                     focusedBorder = Border(BorderStroke(1.dp, Color.White.copy(alpha = 0.5f)))
                 ),
-                onClick = {
-                    val currentTime = System.currentTimeMillis()
-                    if (currentTime - lastClickTime < 1000) {
-                        clickCount++
-                    } else {
-                        clickCount = 1
-                    }
-                    lastClickTime = currentTime
-
-                    // 达到 5 次点击触发
-                    if (clickCount >= 5) {
-                        clickCount = 0 // 重置
-                        // 逻辑：奇数次去太阳系，偶数次去黑洞（或者根据喜好修改）
-                        if (System.currentTimeMillis() % 2 == 0L) {
-                            navController.navigate("SolarSystemScreen")
-                        } else {
-                            navController.navigate("BlackHoleSimulationScreen")
-                        }
-                    }
-                }
+                onClick = handleVersionClick
             ) {
                 Text(
                     modifier = Modifier.padding(3.dp),

@@ -72,6 +72,7 @@ import org.mz.mzdkplayer.ui.screen.vm.MediaLibraryViewModel
 import org.mz.mzdkplayer.ui.screen.vm.SettingsViewModel
 import org.mz.mzdkplayer.ui.theme.myListItemCoverColor
 import org.mz.mzdkplayer.tool.Tools.toBase64
+import org.mz.mzdkplayer.tool.mobileTap
 import java.net.URLEncoder
 
 @OptIn(ExperimentalTvMaterial3Api::class)
@@ -308,16 +309,17 @@ fun MovieLibraryScreen(
                     items(movies.itemCount) { index ->
                         val movie = movies[index]
                         if (movie != null) {
+                            val openMovie = {
+                                selectedMovieTitle = movie.title
+                                viewModel.clearSelectedMovieVersions()
+                                viewModel.loadMovieVersions(movie.tmdbId)
+                                checkVersionsAfterLoad = true
+                            }
 
                             // 使用原生 TV Clickable Surface 替换
                             Surface(
                                 // 直接在这里使用官方提供的 onClick
-                                onClick = {
-                                    selectedMovieTitle = movie.title
-                                    viewModel.clearSelectedMovieVersions()
-                                    viewModel.loadMovieVersions(movie.tmdbId)
-                                    checkVersionsAfterLoad = true
-                                },
+                                onClick = openMovie,
                                 // 直接在这里使用官方提供的 onLongClick
                                 onLongClick = {
                                     selectedMovieTitle = movie.title
@@ -329,6 +331,7 @@ fun MovieLibraryScreen(
                                 modifier = Modifier
                                     .width(178.dp)
                                     .height(100.dp)
+                                    .mobileTap(openMovie)
                                     .onFocusChanged { focusState ->
                                         if (focusState.isFocused) {
                                             focusedMovie = movie
@@ -478,11 +481,14 @@ fun MovieVersionSelectionDialog(
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         items(versions) { version ->
+                            val selectVersion = { onVersionClick(version) }
                             ListItem(
                                 selected = false,
-                                onClick = { onVersionClick(version) },
+                                onClick = selectVersion,
                                 onLongClick = { onLongClick() },
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .mobileTap(selectVersion),
                                 colors = myListItemCoverColor(),
                                 overlineContent = {
                                     Text(

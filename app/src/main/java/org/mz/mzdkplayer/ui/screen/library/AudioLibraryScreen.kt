@@ -48,6 +48,7 @@ import org.mz.mzdkplayer.ui.screen.common.LibraryEmpty
 import org.mz.mzdkplayer.ui.screen.vm.AudioViewModel
 import org.mz.mzdkplayer.ui.theme.MyFileListItemColor
 import org.mz.mzdkplayer.tool.Tools.toBase64
+import org.mz.mzdkplayer.tool.mobileTap
 import java.io.File
 import java.net.URLEncoder
 import java.util.Locale
@@ -176,19 +177,21 @@ fun AudioLibraryScreen(
                 ) {
                     itemsIndexed(audioList) { index, audio ->
                         val isFocused = focusedAudio?.audioUri == audio.audioUri
+                        val playAudio = {
+                            val encodedUri = audio.audioUri.toBase64()
+                            val encodedFn = audio.fileName.toBase64()
+                            val encodedConn = audio.connectionName.toBase64()
+                            val audioItems = audioList.map { AudioItem(it.audioUri, it.fileName, it.dataSourceType) }
+                            AudioPlaylistRepository.setPlaylist(audioItems)
+                            mainNavController.navigate("AudioPlayer/$encodedUri/${audio.dataSourceType}/$encodedFn/$encodedConn/$index")
+                        }
 
                         ListItem(
                             selected = false,
-                            onClick = {
-                                val encodedUri = audio.audioUri.toBase64()
-                                val encodedFn = audio.fileName.toBase64()
-                                val encodedConn = audio.connectionName.toBase64()
-                                val audioItems = audioList.map { AudioItem(it.audioUri, it.fileName, it.dataSourceType) }
-                                AudioPlaylistRepository.setPlaylist(audioItems)
-                                mainNavController.navigate("AudioPlayer/$encodedUri/${audio.dataSourceType}/$encodedFn/$encodedConn/$index")
-                            },
+                            onClick = playAudio,
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .mobileTap(playAudio)
                                 .onFocusChanged { if (it.isFocused) focusedAudio = audio },
                             colors = MyFileListItemColor(),
                             shape = ListItemDefaults.shape(RoundedCornerShape(8.dp)),

@@ -30,6 +30,7 @@ import androidx.tv.material3.Text
 import coil3.compose.AsyncImage
 import org.mz.mzdkplayer.R
 import org.mz.mzdkplayer.data.model.HistoryWithMetadata
+import org.mz.mzdkplayer.tool.mobileTap
 
 @Composable
 fun VideoHistoryCard(
@@ -66,6 +67,7 @@ fun VideoHistoryCard(
         modifier = modifier
             // Req 6: 外部 padding 设为 4.dp，使卡片总体变小
             .padding(4.dp)
+            .mobileTap(onClick)
             .aspectRatio(2f / 3f),
         shape = CardDefaults.shape(shape = RoundedCornerShape(12.dp)),
         colors = CardDefaults.colors(

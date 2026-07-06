@@ -50,6 +50,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.tv.material3.Icon
 import org.mz.mzdkplayer.di.RepositoryProvider
+import org.mz.mzdkplayer.tool.mobileTap
 import org.mz.mzdkplayer.tool.viewModelWithFactory
 import org.mz.mzdkplayer.ui.theme.myListItemCoverColor
 import org.mz.mzdkplayer.ui.theme.mySideFilterChipColor
@@ -137,7 +138,9 @@ fun EditTMDBInfoScreen(
                     onClick = { isSearchMovie = true },
                     colors = mySideFilterChipColor(),
                     leadingIcon = {if (isSearchMovie) Icon(painterResource(R.drawable.check24dp), contentDescription = null) },
-                    modifier = Modifier.padding(end = 8.dp)
+                    modifier = Modifier
+                        .padding(end = 8.dp)
+                        .mobileTap { isSearchMovie = true }
                 ){
                     Text(stringResource(R.string.ui_label_movies))
                 }
@@ -146,7 +149,9 @@ fun EditTMDBInfoScreen(
                     onClick = { isSearchMovie = false },
                     colors = mySideFilterChipColor(),
                     leadingIcon = { if (!isSearchMovie) Icon(painterResource(R.drawable.check24dp), contentDescription = null) },
-                    modifier = Modifier.padding(end = 8.dp)
+                    modifier = Modifier
+                        .padding(end = 8.dp)
+                        .mobileTap { isSearchMovie = false }
                 ){
                     Text(stringResource(R.string.ui_label_series))
                 }
@@ -241,24 +246,26 @@ fun EditTMDBInfoScreen(
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             items(list) { item ->
+                                val applyMapping = {
+                                    // 核心保存逻辑
+                                    val sNum = seasonText.toIntOrNull() ?: 1
+                                    val eNum = episodeText.toIntOrNull() ?: 1
+
+                                    movieViewModel.updateMediaMapping(
+                                        videoUri = decodedUri,
+                                        selectedMedia = item,
+                                        seasonNumber = sNum,
+                                        episodeNumber = eNum,
+                                        originalFileName = fileName
+                                    )
+
+                                    Toast.makeText(context, context.getString(R.string.ui_label_corrected_to, item.title), Toast.LENGTH_SHORT).show()
+                                    //navController.popBackStack() // 返回上一页
+                                }
                                 ListItem(
                                     selected = false,
-                                    onClick = {
-                                        // 核心保存逻辑
-                                        val sNum = seasonText.toIntOrNull() ?: 1
-                                        val eNum = episodeText.toIntOrNull() ?: 1
-
-                                        movieViewModel.updateMediaMapping(
-                                            videoUri = decodedUri,
-                                            selectedMedia = item,
-                                            seasonNumber = sNum,
-                                            episodeNumber = eNum,
-                                            originalFileName = fileName
-                                        )
-
-                                        Toast.makeText(context, context.getString(R.string.ui_label_corrected_to,item.title), Toast.LENGTH_SHORT).show()
-                                        //navController.popBackStack() // 返回上一页
-                                    },
+                                    onClick = applyMapping,
+                                    modifier = Modifier.mobileTap(applyMapping),
                                     colors = myListItemCoverColor(),
                                     scale = ListItemDefaults.scale(focusedScale = 1.02f),
                                     leadingContent = {

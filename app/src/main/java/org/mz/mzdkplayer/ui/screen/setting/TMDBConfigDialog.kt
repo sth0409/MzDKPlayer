@@ -25,6 +25,7 @@ import org.mz.mzdkplayer.data.repository.SettingsRepository
 import org.mz.mzdkplayer.ui.screen.common.MyIconButton
 import org.mz.mzdkplayer.ui.screen.vm.SettingsViewModel
 import org.mz.mzdkplayer.ui.theme.myListItemCoverColor
+import org.mz.mzdkplayer.tool.mobileTap
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
@@ -65,9 +66,11 @@ fun TMDBConfigDialog(
                     // 左侧：预设列表
                     LazyColumn(modifier = Modifier.weight(1f)) {
                         items(commonMirrors) { mirror ->
+                            val selectMirror = { customUrl = mirror }
                             ListItem(
                                 selected = customUrl == mirror,
-                                onClick = { customUrl = mirror },
+                                onClick = selectMirror,
+                                modifier = Modifier.mobileTap(selectMirror),
                                 headlineContent = { Text(if(mirror == SettingsRepository.DEFAULT_TMDB_URL) "Official" else mirror) },
                                 colors = myListItemCoverColor()
                             )

@@ -69,6 +69,7 @@ import org.mz.mzdkplayer.ui.screen.common.TvTextField
 import org.mz.mzdkplayer.ui.screen.vm.AudioViewModel
 import org.mz.mzdkplayer.ui.screen.vm.MovieViewModel
 import org.mz.mzdkplayer.ui.screen.vm.SettingsViewModel
+import org.mz.mzdkplayer.tool.mobileTap
 import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(UnstableApi::class)
@@ -254,10 +255,8 @@ fun WebDavFileListScreen(
                                         val encodedFileUrl = "${authenticatedUrl}/${fileName.trimEnd('/').trimStart('/')}".toBase64()
                                         val encodedFileName = fileName.toBase64()
                                         val encodedConnectionName = (webDavConnection.name ?: "").toBase64()
-                                        ListItem(
-                                            selected = false,
-                                            onClick = {
-                                                coroutineScope.launch {
+                                        val openFile: () -> Unit = {
+                                            coroutineScope.launch {
                                                     if (isDirectory) {
                                                         val rawNewPath = "${path?.trimEnd('/') ?:""}/${fileName.trimEnd('/').trimStart('/')}/"
                                                         val encodedNewPath = rawNewPath.toBase64()
@@ -353,11 +352,16 @@ fun WebDavFileListScreen(
                                                         }
                                                     }
                                                 }
-                                            },
+                                        }
+
+                                        ListItem(
+                                            selected = false,
+                                            onClick = openFile,
                                             colors = MyFileListItemColor(),
                                             modifier = Modifier
                                                 .padding(end = 10.dp)
                                                 .height(40.dp)
+                                                .mobileTap(openFile)
                                                 .onFocusChanged {
                                                     if (it.isFocused) {
                                                         focusedFileName = file.name

@@ -67,6 +67,7 @@ import org.mz.mzdkplayer.di.RepositoryProvider
 import org.mz.mzdkplayer.tool.MediaInfoExtractorFormFileName
 import org.mz.mzdkplayer.tool.Tools
 import org.mz.mzdkplayer.tool.Tools.VideoBigIcon
+import org.mz.mzdkplayer.tool.mobileTap
 import org.mz.mzdkplayer.tool.viewModelWithFactory
 import org.mz.mzdkplayer.ui.screen.common.CirCleIconButton
 import org.mz.mzdkplayer.ui.screen.common.FileEmptyScreen
@@ -260,10 +261,8 @@ fun LocalFileListScreen(path: String?, navController: NavHostController, setting
                                         val encodedFileName = fileName.toBase64()
                                         val encodedLocalFile = "本地文件".toBase64()
 
-                                        ListItem(
-                                            selected = false,
-                                            onClick = {
-                                                coroutineScope.launch {
+                                        val openFile: () -> Unit = {
+                                            coroutineScope.launch {
                                                     // --- 统一编码和错误处理 ---
 
                                                     // 1. 尝试编码完整路径 (作为 URI 使用)
@@ -371,13 +370,16 @@ fun LocalFileListScreen(path: String?, navController: NavHostController, setting
                                                         }
                                                     }
                                                 }
+                                        }
 
-
-                                            },
+                                        ListItem(
+                                            selected = false,
+                                            onClick = openFile,
                                             colors = MyFileListItemColor(),
                                             modifier = Modifier
                                                 .padding(end = 10.dp)
                                                 .height(40.dp)
+                                                .mobileTap(openFile)
                                                 .onFocusChanged {
                                                     if (it.isFocused) {
                                                         focusedFileName = file.name

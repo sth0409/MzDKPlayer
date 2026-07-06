@@ -35,6 +35,7 @@ import androidx.tv.material3.ClickableSurfaceDefaults
 import androidx.tv.material3.Icon
 import androidx.tv.material3.LocalContentColor
 import androidx.tv.material3.Surface
+import org.mz.mzdkplayer.tool.mobileTap
 
 
 @Composable
@@ -58,7 +59,9 @@ fun AudioPlayerControlsIcon(
 //    }
 
     Surface(
-        modifier = modifier.size(iconSize.dp),
+        modifier = modifier
+            .size(iconSize.dp)
+            .mobileTap(onClick),
         onClick = onClick,
         shape = ClickableSurfaceDefaults.shape(shape = CircleShape),
         colors = ClickableSurfaceDefaults.colors(

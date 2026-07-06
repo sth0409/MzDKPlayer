@@ -69,6 +69,7 @@ import org.mz.mzdkplayer.ui.screen.common.TvTextField
 import org.mz.mzdkplayer.ui.screen.vm.AudioViewModel
 import org.mz.mzdkplayer.ui.screen.vm.MovieViewModel
 import org.mz.mzdkplayer.ui.screen.vm.SettingsViewModel
+import org.mz.mzdkplayer.tool.mobileTap
 import java.net.URLEncoder
 
 
@@ -274,10 +275,8 @@ fun HTTPLinkFileListScreen(
                                         val encodedFileUrl = fullFileUrl.toBase64()
                                         val encodedResourceName = resource.name.toBase64()
                                         val encodedConnectionName = connectionName.toBase64()
-                                        ListItem(
-                                            selected = false,
-                                            onClick = {
-                                                coroutineScope.launch {
+                                        val openFile: () -> Unit = {
+                                            coroutineScope.launch {
                                                     // --- 提取公共变量/准备工作 ---
                                                     val fileExtension =
                                                         Tools.extractFileExtension(resource.name)
@@ -388,11 +387,16 @@ fun HTTPLinkFileListScreen(
                                                         }
                                                     }
                                                 }
-                                            },
+                                        }
+
+                                        ListItem(
+                                            selected = false,
+                                            onClick = openFile,
                                             colors = MyFileListItemColor(),
                                             modifier = Modifier
                                                 .padding(end = 10.dp)
                                                 .height(40.dp)
+                                                .mobileTap(openFile)
                                                 .onFocusChanged {
                                                     if (it.isFocused) {
                                                         focusedFileName = resource.name;
@@ -623,6 +627,3 @@ fun HTTPLinkFileListScreen(
         }
     }
 }
-
-
-

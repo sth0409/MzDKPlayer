@@ -6,7 +6,6 @@ import android.net.Uri
 import android.util.Log
 import androidx.annotation.OptIn
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -35,7 +34,6 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -67,6 +65,7 @@ import org.mz.mzdkplayer.di.RepositoryProvider
 import org.mz.mzdkplayer.tool.Tools.fromBase64
 import org.mz.mzdkplayer.tool.Tools.toBase64
 import org.mz.mzdkplayer.tool.Tools.toSafeInt
+import org.mz.mzdkplayer.tool.mobileTap
 import org.mz.mzdkplayer.tool.viewModelWithFactory
 import org.mz.mzdkplayer.ui.audioplayer.AudioPlayerScreen
 
@@ -252,14 +251,10 @@ fun MzDKPlayerAPP(
                                 // ✅ 修改：添加触摸事件支持 + 焦点请求器
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .pointerInput(Unit) {
-                                        detectTapGestures(
-                                            onTap = {
-                                                selectedIndex = index
-                                                performNavigation(selectedIndex, homeNavController)
-                                                Log.d("TouchTest", "Item $index tapped!")
-                                            }
-                                        )
+                                    .mobileTap {
+                                        selectedIndex = index
+                                        performNavigation(selectedIndex, homeNavController)
+                                        Log.d("TouchTest", "Item $index tapped!")
                                     }
                                     .then(
                                         if (index == 0) Modifier.focusRequester(sideFocusRequest)

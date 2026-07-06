@@ -71,6 +71,7 @@ import org.mz.mzdkplayer.data.model.TVSeriesDetails
 import org.mz.mzdkplayer.data.repository.Resource
 import org.mz.mzdkplayer.di.RepositoryProvider
 import org.mz.mzdkplayer.tool.Tools.getCountryName
+import org.mz.mzdkplayer.tool.mobileTap
 import org.mz.mzdkplayer.tool.viewModelWithFactory
 import org.mz.mzdkplayer.ui.screen.common.LoadingScreenWithSub
 import org.mz.mzdkplayer.ui.screen.common.LocalizedStatusText
@@ -330,7 +331,9 @@ private fun TVSeriesContent(
                             border = ClickableSurfaceDefaults.border(
                                 focusedBorder = Border(BorderStroke(1.dp, Color.White.copy(alpha = 0.5f)))
                             ),
-                            modifier = Modifier.offset(x = (-8).dp)
+                            modifier = Modifier
+                                .offset(x = (-8).dp)
+                                .mobileTap(onPlayClick)
                         ) {
                             Text(
                                 text = "${tvSeries.name} S${currentSeason}·E${currentEpisode}",
@@ -398,6 +401,7 @@ private fun TVSeriesContent(
                         // 剧集简介 (精简版)
                         Surface(
                             onClick = { showFullDescDialog = true },
+                            modifier = Modifier.mobileTap { showFullDescDialog = true },
                             shape = ClickableSurfaceDefaults.shape(shape = RoundedCornerShape(8.dp)),
                             colors = ClickableSurfaceDefaults.colors(
                                 containerColor = Color.Transparent,
@@ -822,7 +826,9 @@ private fun CurrentEpisodeInfoSection(
                                 focusedContainerColor = Color.White.copy(alpha = 0.2f)
                             ),
                             scale = ClickableSurfaceDefaults.scale(focusedScale = 1.05f),
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .mobileTap { isSpoilerVisible = true }
                         ) {
                             Row(
                                 modifier = Modifier.padding(12.dp),

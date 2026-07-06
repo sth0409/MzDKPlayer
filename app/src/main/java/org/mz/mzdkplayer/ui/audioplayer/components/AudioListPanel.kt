@@ -39,6 +39,7 @@ import androidx.tv.material3.ListItemDefaults
 import androidx.tv.material3.Text
 import org.mz.mzdkplayer.data.model.AudioItem
 import org.mz.mzdkplayer.tool.focusOnInitialVisibility
+import org.mz.mzdkplayer.tool.mobileTap
 import org.mz.mzdkplayer.ui.screen.vm.AudioPlayerViewModel
 
 
@@ -113,6 +114,10 @@ fun AudioListPanel(
 
                 items(lists.size) { index ->
 
+                    val playItem = {
+                        onSelectedIndexChange(index)
+                        exoPlayer.seekTo(index, 0)
+                    }
 
                     ListItem(
                         modifier = if (index == selectedIndex /*选中的获取焦点*/) {
@@ -122,13 +127,15 @@ fun AudioListPanel(
                                     end = 15.dp,
                                 )
                                 .height(40.dp)
+                                .mobileTap(playItem)
                                 .focusOnInitialVisibility(isVis)
                         } else Modifier
                             .padding(
                                 start = 15.dp,
                                 end = 15.dp,
                             )
-                            .height(40.dp),
+                            .height(40.dp)
+                            .mobileTap(playItem),
                         selected =false,
                         colors = ListItemDefaults.colors(
                             containerColor = Color(0, 0, 0),
@@ -167,11 +174,7 @@ fun AudioListPanel(
 
 
                         },
-                        onClick = {
-                            onSelectedIndexChange(index)
-                            exoPlayer.seekTo(index, 0)
-
-                        }
+                        onClick = playItem
                     )
                 }
 

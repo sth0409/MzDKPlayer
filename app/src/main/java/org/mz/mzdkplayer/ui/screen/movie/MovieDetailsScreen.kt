@@ -78,6 +78,7 @@ import org.mz.mzdkplayer.data.model.MovieDetails
 import org.mz.mzdkplayer.data.repository.Resource
 import org.mz.mzdkplayer.di.RepositoryProvider
 import org.mz.mzdkplayer.tool.Tools.getCountryName
+import org.mz.mzdkplayer.tool.mobileTap
 import org.mz.mzdkplayer.tool.viewModelWithFactory
 import org.mz.mzdkplayer.ui.screen.common.LoadingScreen
 import org.mz.mzdkplayer.ui.screen.common.LoadingScreenWithSub
@@ -290,7 +291,10 @@ private fun MovieContent(
                             border = ClickableSurfaceDefaults.border(
                                 focusedBorder = Border(BorderStroke(1.dp, Color.White.copy(alpha = 0.5f)))
                             ),
-                            modifier = Modifier.offset(x = (-8).dp).focusRequester(titleFR)
+                            modifier = Modifier
+                                .offset(x = (-8).dp)
+                                .mobileTap(onPlayClick)
+                                .focusRequester(titleFR)
                         ) {
                             Text(
                                 text = movie.title ?: stringResource(R.string.ui_label_unknown_movie),
@@ -371,6 +375,7 @@ private fun MovieContent(
                         // 电影简介 (精简版)
                         Surface(
                             onClick = { showFullDescDialog = true },
+                            modifier = Modifier.mobileTap { showFullDescDialog = true },
                             shape = ClickableSurfaceDefaults.shape(shape = RoundedCornerShape(8.dp)),
                             colors = ClickableSurfaceDefaults.colors(
                                 containerColor = Color.Transparent,

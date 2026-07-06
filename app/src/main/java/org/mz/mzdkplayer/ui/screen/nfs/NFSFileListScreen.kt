@@ -67,6 +67,7 @@ import org.mz.mzdkplayer.ui.screen.vm.AudioViewModel
 import org.mz.mzdkplayer.ui.screen.vm.MovieViewModel
 import org.mz.mzdkplayer.ui.screen.vm.NFSConViewModel
 import org.mz.mzdkplayer.ui.screen.vm.SettingsViewModel
+import org.mz.mzdkplayer.tool.mobileTap
 import org.mz.mzdkplayer.ui.theme.MyFileListItemColor
 import org.mz.mzdkplayer.ui.theme.myTTFColor
 import java.net.URLDecoder
@@ -267,10 +268,8 @@ fun NFSFileListScreen(
                                     // 这里假设 file 有 isDirectory: Boolean 和 name: String? 属性
                                     val isDirectory = file.isDirectory
                                     val fileName = file.name ?: "Unknown"
-                                    ListItem(
-                                        selected = false,
-                                        onClick = {
-                                            coroutineScope.launch {
+                                    val openFile: () -> Unit = {
+                                        coroutineScope.launch {
                                                 val newSubPath = file.path
 
                                                 val encodedNewSubPath = newSubPath.ifEmpty { " " }.toBase64()
@@ -395,11 +394,16 @@ fun NFSFileListScreen(
                                                     }
                                                 }
                                             }
-                                        },
+                                    }
+
+                                    ListItem(
+                                        selected = false,
+                                        onClick = openFile,
                                         colors = MyFileListItemColor(),
                                         modifier = Modifier
                                             .padding(end = 10.dp)
                                             .height(40.dp)
+                                            .mobileTap(openFile)
                                             .onFocusChanged {
                                                 if (it.isFocused) {
                                                     focusedFileName = file.name;
@@ -618,6 +622,3 @@ fun NFSFileListScreen(
         }
     }
 }
-
-
-

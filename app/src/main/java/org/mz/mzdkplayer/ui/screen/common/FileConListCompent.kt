@@ -45,6 +45,7 @@ import androidx.tv.material3.Text
 import org.mz.mzdkplayer.R
 
 
+import org.mz.mzdkplayer.tool.mobileTap
 import org.mz.mzdkplayer.ui.theme.myCardBorderStyle
 import org.mz.mzdkplayer.ui.theme.myCardColor
 import org.mz.mzdkplayer.ui.theme.myListItemCoverColor
@@ -209,6 +210,7 @@ fun ConnectionCard(
         modifier = modifier
             .fillMaxWidth()
             .height(110.dp)
+            .mobileTap(onClick)
             .focusRequester(focusRequester),
         onClick = onClick,
         onLongClick = onLogClick,
@@ -321,6 +323,7 @@ fun OperationListItem(
         modifier = Modifier
             .width(220.dp)
             .padding(vertical = 6.dp)
+            .mobileTap(onClick)
             .clip(RoundedCornerShape(8.dp)),
         selected = false,
         onClick = {
@@ -461,5 +464,4 @@ data class ConnectionCardInfo(
     val shareName: String,
     val username: String = "无"
 )
-
 

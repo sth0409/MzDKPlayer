@@ -52,6 +52,7 @@ import androidx.tv.material3.ShapeDefaults
 import androidx.tv.material3.Surface
 
 import androidx.tv.material3.Text
+import org.mz.mzdkplayer.tool.mobileTap
 import org.mz.mzdkplayer.ui.theme.myIconButtonColor
 
 @OptIn(ExperimentalTvMaterial3Api::class)
@@ -98,7 +99,7 @@ fun TvTextField(
             )
         ),
         // tonalElevation = 2.dp,
-        modifier = modifier,
+        modifier = modifier.mobileTap { tfFocusRequester.requestFocus() },
         onClick = { tfFocusRequester.requestFocus() }
     ) {
         BasicTextField(
@@ -187,7 +188,7 @@ fun MyIconButton(
         )
     Button( // 明确指定是 Tv Material3 的 Button
         onClick = onClick,
-        modifier = modifier,
+        modifier = modifier.mobileTap(enabled, onClick),
         enabled = enabled,
         contentPadding = if (isFileBut) buttonWithIconContentPadding else ButtonDefaults.ButtonWithIconContentPadding,
         shape = ButtonDefaults.shape(shape = ShapeDefaults.ExtraSmall),
@@ -215,7 +216,5 @@ fun MyIconButton(
 fun showToast(context: Context, message: String, duration: Int = Toast.LENGTH_SHORT) {
     Toast.makeText(context, message, duration).show()
 }
-
-
 
 

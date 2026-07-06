@@ -97,6 +97,7 @@ import org.mz.mzdkplayer.tool.Tools
 import org.mz.mzdkplayer.tool.Tools.toSafeInt
 import org.mz.mzdkplayer.tool.WebDavDataSource
 import org.mz.mzdkplayer.tool.handleDPadKeyEvents
+import org.mz.mzdkplayer.tool.mobileTap
 
 import org.mz.mzdkplayer.ui.screen.common.LoadingScreen
 import org.mz.mzdkplayer.ui.screen.common.VAErrorScreen
@@ -610,14 +611,16 @@ fun VideoPlayerScreen(
                 .align(Alignment.BottomStart)
                 .padding(start = 40.dp, bottom = 150.dp) // 避开进度条位置
         ) {
+            val restartFromBeginning = {
+                player.seekTo(0L)
+                reRequester.freeFocus()
+                showHistoryTip = false
+            }
             Button(
-                modifier = Modifier.focusRequester(reRequester),
-                onClick = {
-                    player.seekTo(0L)
-                    reRequester.freeFocus()
-                    showHistoryTip = false
-
-                },
+                modifier = Modifier
+                    .focusRequester(reRequester)
+                    .mobileTap(restartFromBeginning),
+                onClick = restartFromBeginning,
                 colors = myIconButtonColor()
             ) {
                 val minutes = (historySeekPos / 1000 / 60).toString().padStart(2, '0').toSafeInt(0)
@@ -819,6 +822,4 @@ sealed class BackPress {
     data object Idle : BackPress()
     data object InitialTouch : BackPress()
 }
-
-
 

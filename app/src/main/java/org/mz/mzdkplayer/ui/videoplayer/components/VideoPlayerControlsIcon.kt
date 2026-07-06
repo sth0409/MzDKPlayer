@@ -31,6 +31,7 @@ import androidx.tv.material3.Icon
 import androidx.tv.material3.LocalContentColor
 import androidx.tv.material3.Surface
 import androidx.tv.material3.Text
+import org.mz.mzdkplayer.tool.mobileTap
 
 @Composable
 fun VideoPlayerControlsIcon(
@@ -52,7 +53,9 @@ fun VideoPlayerControlsIcon(
     ) {
         // 原有的按钮 Surface
         Surface(
-            modifier = Modifier.size(40.dp), // 固定按钮尺寸
+            modifier = Modifier
+                .size(40.dp)
+                .mobileTap(onClick), // 固定按钮尺寸
             onClick = onClick,
             shape = ClickableSurfaceDefaults.shape(shape = CircleShape),
             colors = ClickableSurfaceDefaults.colors(

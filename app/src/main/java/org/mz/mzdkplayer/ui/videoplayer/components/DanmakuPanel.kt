@@ -60,6 +60,7 @@ import org.mz.mzdkplayer.data.model.DanmakuScreenRatio
 
 import org.mz.mzdkplayer.data.repository.DanmakuSettingsManager
 import org.mz.mzdkplayer.data.model.DanmakuType
+import org.mz.mzdkplayer.tool.mobileTap
 import org.mz.mzdkplayer.ui.screen.vm.VideoPlayerViewModel
 
 // 公共圆形按钮组件
@@ -74,7 +75,9 @@ fun CircularIconButton(
 ) {
     Button(
         onClick = onClick,
-        modifier = modifier.size(size.dp),
+        modifier = modifier
+            .size(size.dp)
+            .mobileTap(enabled, onClick),
         shape = ButtonDefaults.shape(shape = CircleShape),
         scale = ButtonDefaults.scale(1.0f),
         enabled = enabled,
@@ -192,19 +195,21 @@ fun MultiSelectList(
         items(items.size) { index ->
             val item = items[index]
             val isSelected = selectedItems.contains(item)
+            val toggleSelection = {
+                val newSelection = if (isSelected) {
+                    selectedItems - item
+                } else {
+                    selectedItems + item
+                }
+                onSelectionChange(newSelection)
+            }
 
             ListItem(
                 selected = isSelected,
-                onClick = {
-                    val newSelection = if (isSelected) {
-                        selectedItems - item
-                    } else {
-                        selectedItems + item
-                    }
-                    onSelectionChange(newSelection)
-                },
+                onClick = toggleSelection,
                 modifier = Modifier
                     .padding(horizontal = 2.dp)
+                    .mobileTap(toggleSelection)
                     .widthIn(min = 60.dp, max = 100.dp)
                     .heightIn(30.dp, 45.dp),
                 colors = ListItemDefaults.colors(
@@ -399,16 +404,18 @@ fun DanmakuPanel(
         {
             items(screenRatios.size) { index ->
                 val isSelected = screenRatios[index] == selectedRatio
+                val selectRatio: () -> Unit = {
+                    selectedRatio = screenRatios[index]
+                    // 当选择变化时，触发更新
+                    updateTrigger++
+                }
 
                 ListItem(
                     selected = isSelected,
-                    onClick = {
-                        selectedRatio = screenRatios[index]
-                        // 当选择变化时，触发更新
-                        updateTrigger++
-                    },
+                    onClick = selectRatio,
                     modifier = Modifier
                         .padding(horizontal = 2.dp)
+                        .mobileTap(selectRatio)
                         .widthIn(min = 60.dp, max = 100.dp)
                         .heightIn(30.dp, 45.dp),
                     colors = ListItemDefaults.colors(
@@ -489,6 +496,3 @@ fun DanmakuPanel(
         )
     }
 }
-
-
-

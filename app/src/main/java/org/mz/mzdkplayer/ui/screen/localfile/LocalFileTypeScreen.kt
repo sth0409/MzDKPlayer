@@ -28,6 +28,7 @@ import org.mz.mzdkplayer.ui.theme.myCardBorderStyle
 import org.mz.mzdkplayer.ui.theme.myCardColor
 import org.mz.mzdkplayer.ui.theme.myFileTypeCardScaleStyle
 import org.mz.mzdkplayer.tool.Tools.toBase64
+import org.mz.mzdkplayer.tool.mobileTap
 import java.net.URLEncoder
 
 
@@ -71,15 +72,17 @@ fun LocalFileTypeScreen(mainNavController: NavHostController) {
             FCLMainTitle(mainNavController = mainNavController, stringResource(R.string.ui_label_local_files), "",true)
         }
         itemsIndexed(filesPaths) { index, conn ->
+            val openPath = {
+                mainNavController.navigate(
+                    "LocalFileListScreen/${filesPaths[index].toBase64()}"
+                )
+            }
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(10.dp),
-                onClick = {
-                    mainNavController.navigate(
-                        "LocalFileListScreen/${filesPaths[index].toBase64()}"
-                    )
-                },
+                    .padding(10.dp)
+                    .mobileTap(openPath),
+                onClick = openPath,
                 colors = myCardColor(),
                 border = myCardBorderStyle(),
                 scale = myFileTypeCardScaleStyle(),

@@ -22,6 +22,7 @@ import androidx.tv.material3.ListItemDefaults
 import androidx.tv.material3.Text
 import org.mz.mzdkplayer.R
 import org.mz.mzdkplayer.tool.focusOnInitialVisibility
+import org.mz.mzdkplayer.tool.mobileTap
 
 @Composable
 fun PlaybackSpeedPanel(
@@ -54,10 +55,12 @@ fun PlaybackSpeedPanel(
         items(speeds.size) { index ->
             val speed = speeds[index]
             val isSelected = speed == currentSpeed
+            val selectSpeed = { onSpeedSelected(speed) }
 
             ListItem(
                 modifier = Modifier
                     .padding(start = 15.dp, end = 15.dp, top = 10.dp, bottom = 10.dp)
+                    .mobileTap(selectSpeed)
                     .let {
                         if (isSelected) it.focusOnInitialVisibility(isVis) else it
                     },
@@ -74,9 +77,7 @@ fun PlaybackSpeedPanel(
                 leadingContent = if (isSelected) {
                     { Icon(Icons.Filled.Check, contentDescription = stringResource(R.string.ui_label_checked)) }
                 } else null,
-                onClick = {
-                    onSpeedSelected(speed)
-                }
+                onClick = selectSpeed
             )
         }
     }

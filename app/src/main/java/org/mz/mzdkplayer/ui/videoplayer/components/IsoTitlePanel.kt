@@ -20,6 +20,7 @@ import androidx.compose.ui.res.stringResource
 import org.mz.mzdkplayer.R
 import org.mz.mzdkplayer.player.core.MzIsoTitle
 import org.mz.mzdkplayer.tool.focusOnInitialVisibility
+import org.mz.mzdkplayer.tool.mobileTap
 
 @Composable
 fun IsoTitlePanel(
@@ -43,10 +44,12 @@ fun IsoTitlePanel(
 
         items(lists.size) { index ->
             val title = lists[index]
+            val selectTitle = { onTitleSelected(title) }
 
             ListItem(
                 modifier = Modifier
                     .padding(15.dp, 10.dp)
+                    .mobileTap(selectTitle)
                     .let {
                         if (index == selectedIndex) it.focusOnInitialVisibility(isVis) else it
                     },
@@ -71,9 +74,7 @@ fun IsoTitlePanel(
                 leadingContent = if (selectedIndex == index) {
                     { Icon(Icons.Filled.Check, contentDescription = stringResource(R.string.ui_label_selected)) }
                 } else null,
-                onClick = {
-                    onTitleSelected(title)
-                }
+                onClick = selectTitle
             )
         }
     }

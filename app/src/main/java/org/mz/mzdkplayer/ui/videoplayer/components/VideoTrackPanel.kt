@@ -39,6 +39,7 @@ import kotlinx.coroutines.launch
 import org.mz.mzdkplayer.R // 确保 R.drawable.hdr_1 和 R.drawable.dolby_vision_seeklogo 等存在
 import org.mz.mzdkplayer.player.core.MzVideoTrack
 import org.mz.mzdkplayer.tool.focusOnInitialVisibility
+import org.mz.mzdkplayer.tool.mobileTap
 import java.util.Locale
 
 
@@ -87,6 +88,7 @@ fun VideoTrackPanel(
             }
             items(lists.size) { index ->
                 val track = lists[index]
+                val selectTrack = { onTrackSelected(track) }
 
                 val qualityPrefix = when {
                     track.isDolbyVision -> stringResource(R.string.ui_label_dolby_vision)
@@ -99,9 +101,12 @@ fun VideoTrackPanel(
                 }
 
                 ListItem(
-                    modifier = Modifier.padding(15.dp, 10.dp) .let {
-                        if (index == selectedIndex) it.focusOnInitialVisibility(isVis) else it
-                    },
+                    modifier = Modifier
+                        .padding(15.dp, 10.dp)
+                        .mobileTap(selectTrack)
+                        .let {
+                            if (index == selectedIndex) it.focusOnInitialVisibility(isVis) else it
+                        },
                     selected = false,
                     colors = ListItemDefaults.colors(
                         containerColor = Color(0, 0, 0),
@@ -141,9 +146,7 @@ fun VideoTrackPanel(
                             Icon(painterResource(id = R.drawable.av1), "AV1", Modifier.size(46.dp, 23.dp))
                         }
                     },
-                    onClick = {
-                        onTrackSelected(track) // 把选中的轨道丢给外层，Player会处理具体的切换逻辑
-                    }
+                    onClick = selectTrack
                 )
             }
 

@@ -47,6 +47,7 @@ import org.mz.mzdkplayer.data.repository.Resource
 import org.mz.mzdkplayer.tool.Tools
 import org.mz.mzdkplayer.tool.Tools.VideoBigIcon
 import org.mz.mzdkplayer.tool.Tools.formatFileSize
+import org.mz.mzdkplayer.tool.mobileTap
 import kotlin.Boolean
 
 @Composable
@@ -177,7 +178,9 @@ fun CirCleIconButton(
     ) {
         // 2. 这里的 Surface 必须强制固定 size
         Surface(
-            modifier = Modifier.size(36.dp), // 显式声明 36dp，防止被拉伸成条状
+            modifier = Modifier
+                .size(36.dp)
+                .mobileTap(onClick), // 显式声明 36dp，防止被拉伸成条状
             onClick = onClick,
             interactionSource = interactionSource,
             shape = ClickableSurfaceDefaults.shape(shape = CircleShape),

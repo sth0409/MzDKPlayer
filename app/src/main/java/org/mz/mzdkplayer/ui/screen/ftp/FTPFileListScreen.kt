@@ -70,6 +70,7 @@ import org.mz.mzdkplayer.ui.screen.common.TvTextField
 import org.mz.mzdkplayer.ui.screen.vm.AudioViewModel
 import org.mz.mzdkplayer.ui.screen.vm.MovieViewModel
 import org.mz.mzdkplayer.ui.screen.vm.SettingsViewModel
+import org.mz.mzdkplayer.tool.mobileTap
 import java.net.URLEncoder
 import kotlin.text.ifEmpty
 import kotlin.time.Duration.Companion.milliseconds
@@ -258,10 +259,8 @@ fun FTPFileListScreen(
                                         val isDirectory = file.isDirectory
                                         val fileName = file.name ?: "Unknown"
 
-                                        ListItem(
-                                            selected = false,
-                                            onClick = {
-                                                coroutineScope.launch {
+                                        val openFile: () -> Unit = {
+                                            coroutineScope.launch {
                                                     // --- 目录处理 ---
                                                     if (isDirectory) {
                                                         // 构建子目录路径
@@ -384,11 +383,16 @@ fun FTPFileListScreen(
                                                         }
                                                     }
                                                 }
-                                            },
+                                        }
+
+                                        ListItem(
+                                            selected = false,
+                                            onClick = openFile,
                                             colors = MyFileListItemColor(),
                                             modifier = Modifier
                                                 .padding(end = 10.dp)
                                                 .height(40.dp)
+                                                .mobileTap(openFile)
                                                 .onFocusChanged {
                                                     if (it.isFocused) {
                                                         focusedFileName = file.name;
@@ -604,6 +608,3 @@ fun FTPFileListScreen(
         }
     }
 }
-
-
-

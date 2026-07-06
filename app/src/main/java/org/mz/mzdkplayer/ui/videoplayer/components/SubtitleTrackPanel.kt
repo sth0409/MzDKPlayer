@@ -35,6 +35,7 @@ import org.mz.mzdkplayer.R
 import org.mz.mzdkplayer.player.core.MzBasicTrack
 import org.mz.mzdkplayer.tool.Tools
 import org.mz.mzdkplayer.tool.focusOnInitialVisibility
+import org.mz.mzdkplayer.tool.mobileTap
 import org.mz.mzdkplayer.ui.screen.common.MyIconButton
 import org.mz.mzdkplayer.ui.theme.myListItemCoverColor
 
@@ -89,6 +90,7 @@ fun SubtitleTrackPanel(
                 }
                 items(lists.size) { index ->
                     val track = lists[index]
+                    val selectTrack = { onTrackSelected(track) }
 
                     val trackLabel = track.name
                     val trackLang = track.language
@@ -112,6 +114,7 @@ fun SubtitleTrackPanel(
                     ListItem(
                         modifier = Modifier
                             .padding(start = 15.dp, end = 15.dp, top = 10.dp, bottom = 10.dp)
+                            .mobileTap(selectTrack)
                             .let {
                                 if (index == selectedIndex) it.focusOnInitialVisibility(isVis) else it
                             },
@@ -145,9 +148,7 @@ fun SubtitleTrackPanel(
                         leadingContent = if (selectedIndex == index) {
                             { Icon(Icons.Filled.Check, contentDescription = stringResource(R.string.ui_label_selected)) }
                         } else null,
-                        onClick = {
-                            onTrackSelected(track)
-                        }
+                        onClick = selectTrack
                     )
                 }
             }
